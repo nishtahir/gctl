@@ -1,6 +1,6 @@
 [workspace]
-
 members = [
     "gctl-bin", 
     "gctl-ghost"
 ]
+resolver = "2"

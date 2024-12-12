@@ -1,4 +1,5 @@
 use crate::{error, options::GhostContentApiOptions};
+use tracing::{debug, trace};
 
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
@@ -116,6 +117,7 @@ impl<'a> GhostPostsApi<'a> {
         let bytes = hex::decode(&self.options.secret)
             .map_err(|e| error::GhostError::ParseError(e.to_string()))?;
         let key = EncodingKey::from_secret(&bytes);
+        debug!("Generated JWT token");
         Ok(encode(&header, &claims, &key)?)
     }
 
@@ -131,8 +133,8 @@ impl<'a> GhostPostsApi<'a> {
             .push("posts")
             .push("");
 
-        eprintln!("Making request to: {}", url.as_str());
-        eprintln!("Authorization: Ghost {}", token);
+        debug!("Making GET request to: {}", url.as_str());
+        trace!("Authorization: Ghost {}", token);
 
         let res = ureq::get(url.as_str())
             .set("Content-Type", "application/json")
@@ -141,7 +143,7 @@ impl<'a> GhostPostsApi<'a> {
             .call()?;
 
         let body = res.into_string()?;
-        eprintln!("Response body: {}", body);
+        trace!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
         Ok(response.posts)
     }
@@ -159,8 +161,8 @@ impl<'a> GhostPostsApi<'a> {
             .push(post_id)
             .push("");
 
-        eprintln!("Making request to: {}", url.as_str());
-        eprintln!("Authorization: Ghost {}", token);
+        debug!("Making GET request to: {}", url.as_str());
+        trace!("Authorization: Ghost {}", token);
 
         let res = ureq::get(url.as_str())
             .set("Content-Type", "application/json")
@@ -169,7 +171,7 @@ impl<'a> GhostPostsApi<'a> {
             .call()?;
 
         let body = res.into_string()?;
-        eprintln!("Response body: {}", body);
+        trace!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
         response
             .posts
@@ -198,9 +200,9 @@ impl<'a> GhostPostsApi<'a> {
             }]
         });
 
-        eprintln!("Making request to: {}", url.as_str());
-        eprintln!("Authorization: Ghost {}", token);
-        eprintln!(
+        debug!("Making POST request to: {}", url.as_str());
+        trace!("Authorization: Ghost {}", token);
+        trace!(
             "Request body: {}",
             serde_json::to_string_pretty(&post_data).unwrap()
         );
@@ -212,7 +214,7 @@ impl<'a> GhostPostsApi<'a> {
             .send_json(post_data)?;
 
         let body = res.into_string()?;
-        eprintln!("Response body: {}", body);
+        trace!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
         response
             .posts
@@ -257,6 +259,13 @@ impl<'a> GhostPostsApi<'a> {
             "posts": [post_update]
         });
 
+        debug!("Making PUT request to: {}", url.as_str());
+        trace!("Authorization: Ghost {}", token);
+        trace!(
+            "Request body: {}",
+            serde_json::to_string_pretty(&post_data).unwrap()
+        );
+
         let res = ureq::put(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
@@ -264,7 +273,7 @@ impl<'a> GhostPostsApi<'a> {
             .send_json(post_data)?;
 
         let body = res.into_string()?;
-        eprintln!("Response body: {}", body);
+        trace!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
         response
             .posts
@@ -285,6 +294,9 @@ impl<'a> GhostPostsApi<'a> {
             .push("posts")
             .push(post_id)
             .push("");
+
+        debug!("Making DELETE request to: {}", url.as_str());
+        trace!("Authorization: Ghost {}", token);
 
         let _res = ureq::delete(url.as_str())
             .set("Content-Type", "application/json")

@@ -1,10 +1,6 @@
 use crate::{error, options::GhostContentApiOptions};
-use serde_json;
-use ureq;
-use url::Url;
 
-use hex;
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -15,7 +11,6 @@ struct Claims {
     iat: usize,
     aud: String,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Post {
@@ -127,7 +122,7 @@ impl<'a> GhostPostsApi<'a> {
     pub fn browse(&self) -> Result<Vec<Post>, error::GhostError> {
         let mut url = self.options.url.clone();
         let token = self.generate_token()?;
-        
+
         url.path_segments_mut()
             .unwrap()
             .push(&self.options.ghost_path)
@@ -142,7 +137,7 @@ impl<'a> GhostPostsApi<'a> {
         let res = ureq::get(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
+            .set("Accept-Version", self.options.version.as_ref())
             .call()?;
 
         let body = res.into_string()?;
@@ -170,13 +165,16 @@ impl<'a> GhostPostsApi<'a> {
         let res = ureq::get(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
+            .set("Accept-Version", self.options.version.as_ref())
             .call()?;
 
         let body = res.into_string()?;
         eprintln!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
-        response.posts.into_iter().next()
+        response
+            .posts
+            .into_iter()
+            .next()
             .ok_or_else(|| error::GhostError::ApiError("No post found".to_string()))
     }
 
@@ -210,13 +208,16 @@ impl<'a> GhostPostsApi<'a> {
         let res = ureq::post(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
+            .set("Accept-Version", self.options.version.as_ref())
             .send_json(post_data)?;
 
         let body = res.into_string()?;
         eprintln!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
-        response.posts.into_iter().next()
+        response
+            .posts
+            .into_iter()
+            .next()
             .ok_or_else(|| error::GhostError::ApiError("Failed to create post".to_string()))
     }
 
@@ -259,13 +260,16 @@ impl<'a> GhostPostsApi<'a> {
         let res = ureq::put(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
+            .set("Accept-Version", self.options.version.as_ref())
             .send_json(post_data)?;
 
         let body = res.into_string()?;
         eprintln!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
-        response.posts.into_iter().next()
+        response
+            .posts
+            .into_iter()
+            .next()
             .ok_or_else(|| error::GhostError::ApiError("Failed to update post".to_string()))
     }
 
@@ -285,7 +289,7 @@ impl<'a> GhostPostsApi<'a> {
         let _res = ureq::delete(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
+            .set("Accept-Version", self.options.version.as_ref())
             .call()?;
 
         Ok(())

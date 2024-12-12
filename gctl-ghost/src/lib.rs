@@ -5,7 +5,8 @@
 //! ## Features
 //! 
 //! - Post management (create, read, update, delete)
-//! - Environment-based configuration
+//! - JWT authentication
+//! - Support for Ghost Admin API v5.0
 //! - Error handling with custom error types
 //! 
 //! ## Example
@@ -14,6 +15,7 @@
 //! use gctl_ghost::GhostContentApi;
 //! use url::Url;
 //! 
+//! // Initialize the API client
 //! let url = Url::parse("https://yourblog.ghost.io").unwrap();
 //! let api = GhostContentApi::new(url, "your_admin_key".to_string());
 //! 
@@ -42,7 +44,6 @@
 
 mod api;
 mod error;
-mod url;
 mod options;
 mod posts;
 

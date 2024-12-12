@@ -2,6 +2,14 @@
 
 A command-line interface tool for managing Ghost blog content through the Ghost Admin API.
 
+## Features
+
+- Post management (create, read, update, delete)
+- Environment-based configuration
+- Error handling with custom error types
+- Support for Ghost Admin API v5.0
+- JWT authentication
+
 ## Installation
 
 ```bash
@@ -83,6 +91,25 @@ cargo build --release
 cargo test
 ```
 
+### Project Structure
+
+- `gctl-bin/`: CLI application
+- `gctl-ghost/`: Ghost API client library
+  - `src/api.rs`: Main API client implementation
+  - `src/posts.rs`: Post management functionality
+  - `src/error.rs`: Error types
+  - `src/options.rs`: Configuration options
+
 ## License
 
-MIT License
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

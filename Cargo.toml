@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "gctl-bin", 
+    "gctl-ghost"
+]

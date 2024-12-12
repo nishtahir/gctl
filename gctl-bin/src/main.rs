@@ -110,10 +110,12 @@ enum PostCommands {
     Update {
         #[arg(help = "Post ID")]
         id: String,
-        #[arg(help = "New title")]
+        #[arg(long, help = "New title")]
         title: Option<String>,
-        #[arg(help = "New content")]
+        #[arg(long, help = "New content")]
         content: Option<String>,
+        #[arg(long, help = "JSON data for the post")]
+        json: Option<String>,
     },
     /// Delete a post
     Delete {
@@ -196,17 +198,32 @@ fn run() -> Result<(), CliError> {
                 debug!("Post created with ID: {}", style(&post.id).yellow());
                 format_post(post, format);
             }
-            PostCommands::Update { id, title, content } => {
+            PostCommands::Update { id, title, content, json } => {
                 info!("Updating post {}...", style(&id).yellow());
-                if let Some(title) = &title {
-                    debug!("New title: {}", style(title).green());
-                }
-                if let Some(content) = &content {
-                    debug!("Content length: {} characters", content.len());
-                }
-                let post = api
-                    .posts()
-                    .edit(&id, title.as_deref(), content.as_deref())?;
+                
+                let post = if let Some(json_str) = json {
+                    debug!("Using JSON input");
+                    trace!("JSON data: {}", json_str);
+                    let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
+                        .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
+                    
+                    if let Some(obj) = json_data.as_object_mut() {
+                        obj.retain(|_, v| !v.is_null());
+                        
+                        if let Some(title) = title {
+                            obj.insert("title".to_string(), serde_json::Value::String(title));
+                        }
+                        if let Some(content) = content {
+                            obj.insert("markdown".to_string(), serde_json::Value::String(content));
+                        }
+                    }
+                    
+                    debug!("Update data: {}", serde_json::to_string_pretty(&json_data).unwrap());
+                    api.posts().edit(&id, None, None, Some(json_data))?
+                } else {
+                    api.posts().edit(&id, title.as_deref(), content.as_deref(), None)?
+                };
+                
                 format_post(post, format);
             }
             PostCommands::Delete { id } => {

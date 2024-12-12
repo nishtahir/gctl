@@ -62,6 +62,9 @@ mod test {
     const BROWSE_POSTS_RESPONSE: &str =
         include_str!("../tests/fixtures/browse_posts_response.json");
     const READ_POST_RESPONSE: &str = include_str!("../tests/fixtures/read_post_response.json");
+    const ADD_POST_REQUEST: &str = include_str!("../tests/fixtures/add_post_request.json");
+    const ADD_POST_RESPONSE: &str = include_str!("../tests/fixtures/add_post_response.json");
+    const UPDATE_POST_RESPONSE: &str = include_str!("../tests/fixtures/update_post_response.json");
 
     async fn setup_mock_api() -> (GhostContentApi, MockServer) {
         let mock_server = MockServer::start().await;
@@ -117,178 +120,23 @@ mod test {
     #[tokio::test]
     async fn test_add_post() {
         let (api, mock_server) = setup_mock_api().await;
-
+        
         // Ghost Admin API requires trailing slashes
         Mock::given(method("POST"))
             .and(path("/ghost/api/admin/posts/"))
             .and(header("Content-Type", "application/json"))
             .and(header("Accept-Version", "v5.0"))
-            .and(body_json(serde_json::json!({
-                "posts": [{
-                    "title": "Test Title",
-                    "markdown": "Test Content",
-                    "status": "draft"
-                }]
-            })))
-            .respond_with(ResponseTemplate::new(201).set_body_json(serde_json::json!({
-                "posts": [
-                    {
-                        "id": "new-post-id",
-                        "uuid": "1b7d4f90-b9c1-4ef8-8f0d-7aa1bcfc1e3e",
-                        "title": "Test Title",
-                        "slug": "test-title",
-                        "html": "<p>Test Content</p>",
-                        "comment_id": "1",
-                        "feature_image": null,
-                        "featured": false,
-                        "visibility": "public",
-                        "created_at": "2023-01-01T00:00:00.000Z",
-                        "updated_at": "2023-01-01T00:00:00.000Z",
-                        "published_at": null,
-                        "custom_excerpt": null,
-                        "codeinjection_head": null,
-                        "codeinjection_foot": null,
-                        "custom_template": null,
-                        "canonical_url": null,
-                        "tags": [],
-                        "authors": [],
-                        "primary_author": {
-                            "id": "1",
-                            "name": "Test Author",
-                            "slug": "test-author",
-                            "profile_image": null,
-                            "cover_image": null,
-                            "bio": null,
-                            "website": null,
-                            "location": null,
-                            "facebook": null,
-                            "twitter": null,
-                            "meta_title": null,
-                            "meta_description": null,
-                            "url": "/author/test-author"
-                        },
-                        "primary_tag": null,
-                        "url": "/test-title",
-                        "excerpt": "Test Content",
-                        "reading_time": 1,
-                        "access": true,
-                        "comments": false,
-                        "og_image": null,
-                        "og_title": null,
-                        "og_description": null,
-                        "twitter_image": null,
-                        "twitter_title": null,
-                        "twitter_description": null,
-                        "meta_title": null,
-                        "meta_description": null,
-                        "email_subject": null,
-                        "frontmatter": null,
-                        "feature_image_alt": null,
-                        "feature_image_caption": null,
-                        "status": "draft",
-                        "markdown": "Test Content"
-                    }
-                ]
-            })))
+            .and(body_json(serde_json::from_str::<serde_json::Value>(ADD_POST_REQUEST).unwrap()))
+            .respond_with(ResponseTemplate::new(201)
+                .set_body_string(ADD_POST_RESPONSE))
             .expect(1)
             .mount(&mock_server)
             .await;
 
         let post = api.posts().add("Test Title", Some("Test Content")).unwrap();
-        assert_eq!(post.id, "new-post-id");
-        assert_eq!(post.title, "Test Title");
-        assert_eq!(post.status, "draft");
-    }
-
-    #[tokio::test]
-    async fn test_edit_post() {
-        let (api, mock_server) = setup_mock_api().await;
-
-        // Ghost Admin API requires trailing slashes
-        Mock::given(method("PUT"))
-            .and(path("/ghost/api/admin/posts/test-post-id/"))
-            .and(header("Content-Type", "application/json"))
-            .and(header("Accept-Version", "v5.0"))
-            .and(body_json(serde_json::json!({
-                "posts": [{
-                    "title": "Updated Title",
-                    "markdown": "Updated Content"
-                }]
-            })))
-            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "posts": [
-                    {
-                        "id": "test-post-id",
-                        "uuid": "1b7d4f90-b9c1-4ef8-8f0d-7aa1bcfc1e3e",
-                        "title": "Updated Title",
-                        "slug": "updated-title",
-                        "html": "<p>Updated Content</p>",
-                        "comment_id": "1",
-                        "feature_image": null,
-                        "featured": false,
-                        "visibility": "public",
-                        "created_at": "2023-01-01T00:00:00.000Z",
-                        "updated_at": "2023-01-01T00:00:00.000Z",
-                        "published_at": null,
-                        "custom_excerpt": null,
-                        "codeinjection_head": null,
-                        "codeinjection_foot": null,
-                        "custom_template": null,
-                        "canonical_url": null,
-                        "tags": [],
-                        "authors": [],
-                        "primary_author": {
-                            "id": "1",
-                            "name": "Test Author",
-                            "slug": "test-author",
-                            "profile_image": null,
-                            "cover_image": null,
-                            "bio": null,
-                            "website": null,
-                            "location": null,
-                            "facebook": null,
-                            "twitter": null,
-                            "meta_title": null,
-                            "meta_description": null,
-                            "url": "/author/test-author"
-                        },
-                        "primary_tag": null,
-                        "url": "/updated-title",
-                        "excerpt": "Updated Content",
-                        "reading_time": 1,
-                        "access": true,
-                        "comments": false,
-                        "og_image": null,
-                        "og_title": null,
-                        "og_description": null,
-                        "twitter_image": null,
-                        "twitter_title": null,
-                        "twitter_description": null,
-                        "meta_title": null,
-                        "meta_description": null,
-                        "email_subject": null,
-                        "frontmatter": null,
-                        "feature_image_alt": null,
-                        "feature_image_caption": null,
-                        "status": "draft",
-                        "markdown": "Updated Content"
-                    }
-                ]
-            })))
-            .expect(1)
-            .mount(&mock_server)
-            .await;
-
-        let post = api
-            .posts()
-            .edit(
-                "test-post-id",
-                Some("Updated Title"),
-                Some("Updated Content"),
-            )
-            .unwrap();
         assert_eq!(post.id, "test-post-id");
-        assert_eq!(post.title, "Updated Title");
+        assert_eq!(post.title, "Test Title");
+        assert_eq!(post.markdown.as_deref(), Some("Test Content"));
         assert_eq!(post.status, "draft");
     }
 
@@ -313,7 +161,7 @@ mod test {
     #[tokio::test]
     async fn test_update_post() {
         let (api, mock_server) = setup_mock_api().await;
-
+        
         // Ghost Admin API requires trailing slashes
         Mock::given(method("PUT"))
             .and(path("/ghost/api/admin/posts/test-post-id/"))
@@ -325,66 +173,8 @@ mod test {
                     "markdown": "Updated Content"
                 }]
             })))
-            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "posts": [
-                    {
-                        "id": "test-post-id",
-                        "uuid": "1b7d4f90-b9c1-4ef8-8f0d-7aa1bcfc1e3e",
-                        "title": "Updated Title",
-                        "slug": "updated-title",
-                        "html": "<p>Updated Content</p>",
-                        "comment_id": "1",
-                        "feature_image": null,
-                        "featured": false,
-                        "visibility": "public",
-                        "created_at": "2023-01-01T00:00:00.000Z",
-                        "updated_at": "2023-01-01T00:00:00.000Z",
-                        "published_at": null,
-                        "custom_excerpt": null,
-                        "codeinjection_head": null,
-                        "codeinjection_foot": null,
-                        "custom_template": null,
-                        "canonical_url": null,
-                        "tags": [],
-                        "authors": [],
-                        "primary_author": {
-                            "id": "1",
-                            "name": "Test Author",
-                            "slug": "test-author",
-                            "profile_image": null,
-                            "cover_image": null,
-                            "bio": null,
-                            "website": null,
-                            "location": null,
-                            "facebook": null,
-                            "twitter": null,
-                            "meta_title": null,
-                            "meta_description": null,
-                            "url": "/author/test-author"
-                        },
-                        "primary_tag": null,
-                        "url": "/updated-title",
-                        "excerpt": "Updated Content",
-                        "reading_time": 1,
-                        "access": true,
-                        "comments": false,
-                        "og_image": null,
-                        "og_title": null,
-                        "og_description": null,
-                        "twitter_image": null,
-                        "twitter_title": null,
-                        "twitter_description": null,
-                        "meta_title": null,
-                        "meta_description": null,
-                        "email_subject": null,
-                        "frontmatter": null,
-                        "feature_image_alt": null,
-                        "feature_image_caption": null,
-                        "status": "draft",
-                        "markdown": "Updated Content"
-                    }
-                ]
-            })))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(UPDATE_POST_RESPONSE))
             .expect(1)
             .mount(&mock_server)
             .await;
@@ -395,6 +185,7 @@ mod test {
                 "test-post-id",
                 Some("Updated Title"),
                 Some("Updated Content"),
+                None,
             )
             .unwrap();
         assert_eq!(post.id, "test-post-id");

@@ -242,6 +242,7 @@ impl<'a> GhostPostsApi<'a> {
         post_id: &str,
         title: Option<&str>,
         content: Option<&str>,
+        json_data: Option<serde_json::Value>,
     ) -> Result<Post, error::GhostError> {
         let mut url = self.options.url.clone();
         let token = self.generate_token()?;
@@ -255,44 +256,47 @@ impl<'a> GhostPostsApi<'a> {
             .push(post_id)
             .push("");
 
-        let mut post_update = serde_json::Map::new();
-        if let Some(title) = title {
-            post_update.insert(
-                "title".to_string(),
-                serde_json::Value::String(title.to_string()),
-            );
-        }
-        if let Some(content) = content {
-            post_update.insert(
-                "markdown".to_string(),
-                serde_json::Value::String(content.to_string()),
-            );
-        }
-
-        let post_data = serde_json::json!({
-            "posts": [post_update]
-        });
+        let post_data = if let Some(mut json) = json_data {
+            if let Some(obj) = json.as_object_mut() {
+                if let Some(title) = title {
+                    obj.insert("title".to_string(), serde_json::Value::String(title.to_string()));
+                }
+                if let Some(content) = content {
+                    obj.insert("markdown".to_string(), serde_json::Value::String(content.to_string()));
+                }
+            }
+            serde_json::json!({ "posts": [json] })
+        } else {
+            let mut post_update = serde_json::Map::new();
+            if let Some(title) = title {
+                post_update.insert(
+                    "title".to_string(),
+                    serde_json::Value::String(title.to_string()),
+                );
+            }
+            if let Some(content) = content {
+                post_update.insert(
+                    "markdown".to_string(),
+                    serde_json::Value::String(content.to_string()),
+                );
+            }
+            serde_json::json!({ "posts": [post_update] })
+        };
 
         debug!("Making PUT request to: {}", url.as_str());
         trace!("Authorization: Ghost {}", token);
-        trace!(
-            "Request body: {}",
-            serde_json::to_string_pretty(&post_data).unwrap()
-        );
+        trace!("Request body: {}", serde_json::to_string_pretty(&post_data).unwrap());
 
         let res = ureq::put(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", self.options.version.as_ref())
+            .set("Accept-Version", &self.options.version.as_ref())
             .send_json(post_data)?;
 
         let body = res.into_string()?;
         trace!("Response body: {}", body);
         let response: PostsResponse = serde_json::from_str(&body)?;
-        response
-            .posts
-            .into_iter()
-            .next()
+        response.posts.into_iter().next()
             .ok_or_else(|| error::GhostError::ApiError("Failed to update post".to_string()))
     }
 

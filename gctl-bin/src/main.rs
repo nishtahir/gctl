@@ -34,7 +34,7 @@ use console::style;
 use gctl_ghost::{GhostContentApi, GhostError};
 use std::process;
 use thiserror::Error;
-use tracing::{debug, error, info, Level};
+use tracing::{debug, error, info, trace, Level};
 use tracing_subscriber::{self, EnvFilter};
 use url::Url;
 
@@ -73,6 +73,10 @@ struct Cli {
     /// Enable verbose logging
     #[arg(short, long, global = true)]
     verbose: bool,
+
+    /// Enable very verbose logging (trace level)
+    #[arg(short = 'V', long, global = true)]
+    very_verbose: bool,
 }
 
 #[derive(Subcommand)]
@@ -95,10 +99,12 @@ enum PostCommands {
     },
     /// Add a new post
     Add {
-        #[arg(help = "Post title")]
+        #[arg(long, help = "Post title")]
         title: String,
-        #[arg(help = "Post content")]
-        content: String,
+        #[arg(long, help = "Post content", required = false)]
+        content: Option<String>,
+        #[arg(long, help = "JSON data for the post")]
+        json: Option<String>,
     },
     /// Update an existing post
     Update {
@@ -116,8 +122,10 @@ enum PostCommands {
     },
 }
 
-fn setup_logging(verbose: bool) {
-    let filter = if verbose {
+fn setup_logging(verbose: bool, very_verbose: bool) {
+    let filter = if very_verbose {
+        EnvFilter::from_default_env().add_directive(Level::TRACE.into())
+    } else if verbose {
         EnvFilter::from_default_env().add_directive(Level::DEBUG.into())
     } else {
         EnvFilter::from_default_env().add_directive(Level::INFO.into())
@@ -135,7 +143,7 @@ fn run() -> Result<(), CliError> {
     dotenvy::dotenv().ok();
 
     let cli = Cli::parse();
-    setup_logging(cli.verbose);
+    setup_logging(cli.verbose, cli.very_verbose);
 
     debug!("Loading configuration...");
     let url = cli.url.ok_or_else(|| CliError::ConfigError("GHOST_URL is required".to_string()))?;
@@ -163,9 +171,28 @@ fn run() -> Result<(), CliError> {
                 let post = api.posts().read(&id)?;
                 format_post(post, format);
             }
-            PostCommands::Add { title, content } => {
+            PostCommands::Add { title, content, json } => {
                 info!("Creating new post '{}'...", style(&title).green());
-                let post = api.posts().add(&title, &content)?;
+                
+                let post = if let Some(json_str) = json {
+                    debug!("Using JSON input");
+                    trace!("JSON data: {}", json_str);
+                    let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
+                        .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
+                    
+                    if let Some(obj) = json_data.as_object_mut() {
+                        obj.retain(|_, v| !v.is_null());
+                        
+                        obj.insert("title".to_string(), serde_json::Value::String(title.clone()));
+                        obj.insert("status".to_string(), serde_json::Value::String("draft".to_string()));
+                    }
+                    
+                    debug!("Merged JSON data: {}", serde_json::to_string_pretty(&json_data).unwrap());
+                    api.posts().add(&title, None)?
+                } else {
+                    api.posts().add(&title, content.as_deref())?
+                };
+                
                 debug!("Post created with ID: {}", style(&post.id).yellow());
                 format_post(post, format);
             }

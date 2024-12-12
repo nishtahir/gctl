@@ -89,7 +89,7 @@ mod test {
             .await;
 
         let posts = api.posts().browse().unwrap();
-        assert_eq!(posts.len(), 1);
+        assert_eq!(posts.len(), 2);
         assert_eq!(posts[0].title, "Coming soon");
         assert_eq!(posts[0].status, "published");
     }
@@ -194,7 +194,7 @@ mod test {
             .mount(&mock_server)
             .await;
 
-        let post = api.posts().add("Test Title", "Test Content").unwrap();
+        let post = api.posts().add("Test Title", Some("Test Content")).unwrap();
         assert_eq!(post.id, "new-post-id");
         assert_eq!(post.title, "Test Title");
         assert_eq!(post.status, "draft");

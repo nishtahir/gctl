@@ -38,8 +38,8 @@ pub struct Post {
     pub primary_author: Author,
     pub primary_tag: Option<Tag>,
     pub url: String,
-    pub excerpt: String,
-    pub reading_time: i32,
+    pub excerpt: Option<String>,
+    pub reading_time: Option<i32>,
     pub access: Option<bool>,
     pub comments: Option<bool>,
     pub og_image: Option<String>,
@@ -180,7 +180,7 @@ impl<'a> GhostPostsApi<'a> {
             .ok_or_else(|| error::GhostError::ApiError("No post found".to_string()))
     }
 
-    pub fn add(&self, title: &str, content: &str) -> Result<Post, error::GhostError> {
+    pub fn add(&self, title: &str, content: Option<&str>) -> Result<Post, error::GhostError> {
         let mut url = self.options.url.clone();
         let token = self.generate_token()?;
 
@@ -192,26 +192,40 @@ impl<'a> GhostPostsApi<'a> {
             .push("posts")
             .push("");
 
-        let post_data = serde_json::json!({
-            "posts": [{
-                "title": title,
-                "markdown": content,
-                "status": "draft"
-            }]
+        let mut post_data = serde_json::Map::new();
+        post_data.insert(
+            "title".to_string(),
+            serde_json::Value::String(title.to_string()),
+        );
+
+        if let Some(content) = content {
+            post_data.insert(
+                "markdown".to_string(),
+                serde_json::Value::String(content.to_string()),
+            );
+        }
+
+        post_data.insert(
+            "status".to_string(),
+            serde_json::Value::String("draft".to_string()),
+        );
+
+        let request_body = serde_json::json!({
+            "posts": [post_data]
         });
 
         debug!("Making POST request to: {}", url.as_str());
         trace!("Authorization: Ghost {}", token);
         trace!(
             "Request body: {}",
-            serde_json::to_string_pretty(&post_data).unwrap()
+            serde_json::to_string_pretty(&request_body).unwrap()
         );
 
         let res = ureq::post(url.as_str())
             .set("Content-Type", "application/json")
             .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", self.options.version.as_ref())
-            .send_json(post_data)?;
+            .set("Accept-Version", &self.options.version.as_ref())
+            .send_json(request_body)?;
 
         let body = res.into_string()?;
         trace!("Response body: {}", body);

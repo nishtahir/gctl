@@ -1,7 +1,8 @@
 use crate::{error, options::GhostContentApiOptions};
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
 
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -91,13 +92,28 @@ pub struct PostsResponse {
     posts: Vec<Post>,
 }
 
+#[derive(Debug, Deserialize)]
+struct GhostErrorDetails {
+    message: String,
+    context: Option<String>,
+    #[serde(rename = "type")]
+    error_type: Option<String>,
+    code: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GhostErrorResponse {
+    errors: Vec<GhostErrorDetails>,
+}
+
 pub struct GhostPostsApi<'a> {
     options: &'a GhostContentApiOptions,
+    client: &'a Client,
 }
 
 impl<'a> GhostPostsApi<'a> {
-    pub fn new(options: &'a GhostContentApiOptions) -> GhostPostsApi<'a> {
-        GhostPostsApi { options }
+    pub fn new(options: &'a GhostContentApiOptions, client: &'a Client) -> Self {
+        GhostPostsApi { options, client }
     }
 
     fn generate_token(&self) -> Result<String, error::GhostError> {
@@ -121,207 +137,204 @@ impl<'a> GhostPostsApi<'a> {
         Ok(encode(&header, &claims, &key)?)
     }
 
-    pub fn browse(&self) -> Result<Vec<Post>, error::GhostError> {
-        let mut url = self.options.url.clone();
+    async fn make_request(
+        &self,
+        method: &str,
+        endpoint: &str,
+        body: Option<serde_json::Value>,
+    ) -> Result<reqwest::Response, error::GhostError> {
+        let host = self.options.url.as_str().trim_end_matches('/');
+        let url = format!("{}/ghost/api/admin/{}/", host, endpoint);
         let token = self.generate_token()?;
 
-        url.path_segments_mut()
-            .unwrap()
-            .push(&self.options.ghost_path)
-            .push("api")
-            .push("admin")
-            .push("posts")
-            .push("");
-
-        debug!("Making GET request to: {}", url.as_str());
+        debug!("Making {} request to: {}", method, url);
         trace!("Authorization: Ghost {}", token);
 
-        let res = ureq::get(url.as_str())
-            .set("Content-Type", "application/json")
-            .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", self.options.version.as_ref())
-            .call()?;
+        let mut request = self
+            .client
+            .request(method.parse().unwrap(), &url)
+            .header("Accept-Version", self.options.version.as_ref())
+            .header("Content-Type", "application/json")
+            .header("Authorization", format!("Ghost {}", token))
+            .header("User-Agent", &self.options.user_agent);
 
-        let body = res.into_string()?;
-        trace!("Response body: {}", body);
-        let response: PostsResponse = serde_json::from_str(&body)?;
-        Ok(response.posts)
+        if let Some(json) = body {
+            trace!("Request body: {}", &json);
+            request = request.json(&json);
+        }
+
+        let response = request.send().await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await?;
+
+            trace!("Error body: {}", body);
+
+            let error_message =
+                if let Ok(error_response) = serde_json::from_str::<GhostErrorResponse>(&body) {
+                    error_response
+                        .errors
+                        .into_iter()
+                        .map(|e| format!("{} ({})", e.message, e.error_type.unwrap_or_default()))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                } else {
+                    body
+                };
+
+            error!("API request failed: {} - {}", status, error_message);
+            return Err(error::GhostError::ApiError(format!(
+                "{} - {}",
+                status, error_message
+            )));
+        }
+
+        Ok(response)
     }
 
-    pub fn read(&self, post_id: &str) -> Result<Post, error::GhostError> {
-        let mut url = self.options.url.clone();
-        let token = self.generate_token()?;
+    pub async fn browse(&self) -> Result<Vec<Post>, error::GhostError> {
+        let response = self.make_request("GET", "posts", None).await?;
+        let data: PostsResponse = response.json().await?;
+        Ok(data.posts)
+    }
 
-        url.path_segments_mut()
-            .unwrap()
-            .push(&self.options.ghost_path)
-            .push("api")
-            .push("admin")
-            .push("posts")
-            .push(post_id)
-            .push("");
-
-        debug!("Making GET request to: {}", url.as_str());
-        trace!("Authorization: Ghost {}", token);
-
-        let res = ureq::get(url.as_str())
-            .set("Content-Type", "application/json")
-            .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", self.options.version.as_ref())
-            .call()?;
-
-        let body = res.into_string()?;
-        trace!("Response body: {}", body);
-        let response: PostsResponse = serde_json::from_str(&body)?;
-        response
-            .posts
+    pub async fn read(&self, post_id: &str) -> Result<Post, error::GhostError> {
+        let response = self
+            .make_request("GET", &format!("posts/{}", post_id), None)
+            .await?;
+        let data: PostsResponse = response.json().await?;
+        data.posts
             .into_iter()
             .next()
             .ok_or_else(|| error::GhostError::ApiError("No post found".to_string()))
     }
 
-    pub fn add(&self, title: &str, content: Option<&str>) -> Result<Post, error::GhostError> {
-        let mut url = self.options.url.clone();
-        let token = self.generate_token()?;
-
-        url.path_segments_mut()
-            .unwrap()
-            .push(&self.options.ghost_path)
-            .push("api")
-            .push("admin")
-            .push("posts")
-            .push("");
-
-        let mut post_data = serde_json::Map::new();
-        post_data.insert(
-            "title".to_string(),
-            serde_json::Value::String(title.to_string()),
+    fn add_string_field(
+        obj: &mut serde_json::Map<String, serde_json::Value>,
+        key: &str,
+        value: &str,
+    ) {
+        obj.insert(
+            key.to_string(),
+            serde_json::Value::String(value.to_string()),
         );
-
-        if let Some(content) = content {
-            post_data.insert(
-                "markdown".to_string(),
-                serde_json::Value::String(content.to_string()),
-            );
-        }
-
-        post_data.insert(
-            "status".to_string(),
-            serde_json::Value::String("draft".to_string()),
-        );
-
-        let request_body = serde_json::json!({
-            "posts": [post_data]
-        });
-
-        debug!("Making POST request to: {}", url.as_str());
-        trace!("Authorization: Ghost {}", token);
-        trace!(
-            "Request body: {}",
-            serde_json::to_string_pretty(&request_body).unwrap()
-        );
-
-        let res = ureq::post(url.as_str())
-            .set("Content-Type", "application/json")
-            .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
-            .send_json(request_body)?;
-
-        let body = res.into_string()?;
-        trace!("Response body: {}", body);
-        let response: PostsResponse = serde_json::from_str(&body)?;
-        response
-            .posts
-            .into_iter()
-            .next()
-            .ok_or_else(|| error::GhostError::ApiError("Failed to create post".to_string()))
     }
 
-    pub fn edit(
+    fn create_post_fields(
+        &self,
+        post_data: &mut serde_json::Map<String, serde_json::Value>,
+        title: Option<&str>,
+        content: Option<&str>,
+        status: Option<&str>,
+    ) {
+        if !post_data.contains_key("updated_at") {
+            let now = chrono::Utc::now();
+            Self::add_string_field(post_data, "updated_at", &now.to_rfc3339());
+        }
+
+        if let Some(title) = title {
+            Self::add_string_field(post_data, "title", title);
+        }
+        if let Some(content) = content {
+            Self::add_string_field(post_data, "markdown", content);
+        }
+        if let Some(status) = status {
+            Self::add_string_field(post_data, "status", status);
+        }
+    }
+
+    fn wrap_post_data(post_data: serde_json::Map<String, serde_json::Value>) -> serde_json::Value {
+        serde_json::json!({ "posts": [post_data] })
+    }
+
+    pub async fn edit(
         &self,
         post_id: &str,
         title: Option<&str>,
         content: Option<&str>,
         json_data: Option<serde_json::Value>,
+        status: Option<&str>,
     ) -> Result<Post, error::GhostError> {
-        let mut url = self.options.url.clone();
-        let token = self.generate_token()?;
-
-        url.path_segments_mut()
-            .unwrap()
-            .push(&self.options.ghost_path)
-            .push("api")
-            .push("admin")
-            .push("posts")
-            .push(post_id)
-            .push("");
-
-        let post_data = if let Some(mut json) = json_data {
-            if let Some(obj) = json.as_object_mut() {
-                if let Some(title) = title {
-                    obj.insert("title".to_string(), serde_json::Value::String(title.to_string()));
-                }
-                if let Some(content) = content {
-                    obj.insert("markdown".to_string(), serde_json::Value::String(content.to_string()));
-                }
-            }
-            serde_json::json!({ "posts": [json] })
+        let mut post_data = if let Some(mut json) = json_data {
+            json.as_object_mut()
+                .map(|obj| {
+                    obj.retain(|_, v| !v.is_null());
+                    obj.to_owned()
+                })
+                .unwrap_or_default()
         } else {
-            let mut post_update = serde_json::Map::new();
-            if let Some(title) = title {
-                post_update.insert(
-                    "title".to_string(),
-                    serde_json::Value::String(title.to_string()),
-                );
-            }
-            if let Some(content) = content {
-                post_update.insert(
-                    "markdown".to_string(),
-                    serde_json::Value::String(content.to_string()),
-                );
-            }
-            serde_json::json!({ "posts": [post_update] })
+            serde_json::Map::new()
         };
 
-        debug!("Making PUT request to: {}", url.as_str());
-        trace!("Authorization: Ghost {}", token);
-        trace!("Request body: {}", serde_json::to_string_pretty(&post_data).unwrap());
+        self.create_post_fields(&mut post_data, title, content, status);
+        let request_body = Self::wrap_post_data(post_data);
 
-        let res = ureq::put(url.as_str())
-            .set("Content-Type", "application/json")
-            .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", &self.options.version.as_ref())
-            .send_json(post_data)?;
+        trace!(
+            "Request body: {}",
+            serde_json::to_string_pretty(&request_body).unwrap()
+        );
 
-        let body = res.into_string()?;
-        trace!("Response body: {}", body);
-        let response: PostsResponse = serde_json::from_str(&body)?;
-        response.posts.into_iter().next()
+        let response = self
+            .make_request("PUT", &format!("posts/{}", post_id), Some(request_body))
+            .await?;
+        let data: PostsResponse = response.json().await?;
+        trace!(
+            "Response body: {}",
+            serde_json::to_string_pretty(&data).unwrap()
+        );
+
+        data.posts
+            .into_iter()
+            .next()
             .ok_or_else(|| error::GhostError::ApiError("Failed to update post".to_string()))
     }
 
-    pub fn delete(&self, post_id: &str) -> Result<(), error::GhostError> {
-        let mut url = self.options.url.clone();
-        let token = self.generate_token()?;
+    pub async fn add(
+        &self,
+        title: &str,
+        content: Option<&str>,
+        json_data: Option<serde_json::Value>,
+        status: Option<&str>,
+    ) -> Result<Post, error::GhostError> {
+        let mut post_data = if let Some(mut json) = json_data {
+            json.as_object_mut()
+                .map(|obj| {
+                    obj.retain(|_, v| !v.is_null());
+                    obj.to_owned()
+                })
+                .unwrap_or_default()
+        } else {
+            serde_json::Map::new()
+        };
 
-        url.path_segments_mut()
-            .unwrap()
-            .push(&self.options.ghost_path)
-            .push("api")
-            .push("admin")
-            .push("posts")
-            .push(post_id)
-            .push("");
+        self.create_post_fields(&mut post_data, Some(title), content, status);
+        let request_body = Self::wrap_post_data(post_data);
 
-        debug!("Making DELETE request to: {}", url.as_str());
-        trace!("Authorization: Ghost {}", token);
+        trace!(
+            "Request body: {}",
+            serde_json::to_string_pretty(&request_body).unwrap()
+        );
 
-        let _res = ureq::delete(url.as_str())
-            .set("Content-Type", "application/json")
-            .set("Authorization", format!("Ghost {}", token).as_str())
-            .set("Accept-Version", self.options.version.as_ref())
-            .call()?;
+        let response = self
+            .make_request("POST", "posts", Some(request_body))
+            .await?;
+        let data: PostsResponse = response.json().await?;
+        trace!(
+            "Response body: {}",
+            serde_json::to_string_pretty(&data).unwrap()
+        );
 
+        data.posts
+            .into_iter()
+            .next()
+            .ok_or_else(|| error::GhostError::ApiError("Failed to create post".to_string()))
+    }
+
+    pub async fn delete(&self, post_id: &str) -> Result<(), error::GhostError> {
+        let _response = self
+            .make_request("DELETE", &format!("posts/{}", post_id), None)
+            .await?;
         Ok(())
     }
 }

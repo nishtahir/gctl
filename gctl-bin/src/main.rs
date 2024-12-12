@@ -99,23 +99,26 @@ enum PostCommands {
     },
     /// Add a new post
     Add {
-        #[arg(long, help = "Post title")]
+        #[arg(long)]
         title: String,
-        #[arg(long, help = "Post content", required = false)]
+        #[arg(long)]
         content: Option<String>,
-        #[arg(long, help = "JSON data for the post")]
+        #[arg(long)]
         json: Option<String>,
+        #[arg(long)]
+        status: Option<String>,
     },
     /// Update an existing post
     Update {
-        #[arg(help = "Post ID")]
         id: String,
-        #[arg(long, help = "New title")]
+        #[arg(long)]
         title: Option<String>,
-        #[arg(long, help = "New content")]
+        #[arg(long)]
         content: Option<String>,
-        #[arg(long, help = "JSON data for the post")]
+        #[arg(long)]
         json: Option<String>,
+        #[arg(long)]
+        status: Option<String>,
     },
     /// Delete a post
     Delete {
@@ -141,15 +144,19 @@ fn setup_logging(verbose: bool, very_verbose: bool) {
         .init();
 }
 
-fn run() -> Result<(), CliError> {
+async fn run() -> Result<(), CliError> {
     dotenvy::dotenv().ok();
 
     let cli = Cli::parse();
     setup_logging(cli.verbose, cli.very_verbose);
 
     debug!("Loading configuration...");
-    let url = cli.url.ok_or_else(|| CliError::ConfigError("GHOST_URL is required".to_string()))?;
-    let key = cli.key.ok_or_else(|| CliError::ConfigError("GHOST_ADMIN_KEY is required".to_string()))?;
+    let url = cli
+        .url
+        .ok_or_else(|| CliError::ConfigError("GHOST_URL is required".to_string()))?;
+    let key = cli
+        .key
+        .ok_or_else(|| CliError::ConfigError("GHOST_ADMIN_KEY is required".to_string()))?;
 
     let url = Url::parse(&url)?;
     debug!("Connecting to Ghost at {}", style(&url).cyan());
@@ -164,16 +171,21 @@ fn run() -> Result<(), CliError> {
         Commands::Post { command } => match command {
             PostCommands::List => {
                 info!("Fetching all posts...");
-                let posts = api.posts().browse()?;
+                let posts = api.posts().browse().await?;
                 debug!("Found {} posts", posts.len());
                 format_posts(posts, format);
             }
             PostCommands::Get { id } => {
                 info!("Fetching post {}...", style(&id).yellow());
-                let post = api.posts().read(&id)?;
+                let post = api.posts().read(&id).await?;
                 format_post(post, format);
             }
-            PostCommands::Add { title, content, json } => {
+            PostCommands::Add {
+                title,
+                content,
+                json,
+                status,
+            } => {
                 info!("Creating new post '{}'...", style(&title).green());
                 
                 let post = if let Some(json_str) = json {
@@ -184,51 +196,60 @@ fn run() -> Result<(), CliError> {
                     
                     if let Some(obj) = json_data.as_object_mut() {
                         obj.retain(|_, v| !v.is_null());
-                        
                         obj.insert("title".to_string(), serde_json::Value::String(title.clone()));
-                        obj.insert("status".to_string(), serde_json::Value::String("draft".to_string()));
                     }
                     
                     debug!("Merged JSON data: {}", serde_json::to_string_pretty(&json_data).unwrap());
-                    api.posts().add(&title, None)?
+                    api.posts().add(&title, None, Some(json_data), status.as_deref()).await?
                 } else {
-                    api.posts().add(&title, content.as_deref())?
+                    api.posts().add(&title, content.as_deref(), None, status.as_deref()).await?
                 };
                 
                 debug!("Post created with ID: {}", style(&post.id).yellow());
                 format_post(post, format);
             }
-            PostCommands::Update { id, title, content, json } => {
+            PostCommands::Update {
+                id,
+                title,
+                content,
+                json,
+                status,
+            } => {
                 info!("Updating post {}...", style(&id).yellow());
-                
+
                 let post = if let Some(json_str) = json {
                     debug!("Using JSON input");
                     trace!("JSON data: {}", json_str);
                     let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
                         .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
-                    
+
                     if let Some(obj) = json_data.as_object_mut() {
                         obj.retain(|_, v| !v.is_null());
-                        
+
                         if let Some(title) = title {
                             obj.insert("title".to_string(), serde_json::Value::String(title));
                         }
                         if let Some(content) = content {
                             obj.insert("markdown".to_string(), serde_json::Value::String(content));
                         }
+                        if let Some(status) = &status {
+                            obj.insert("status".to_string(), serde_json::Value::String(status.clone()));
+                        }
                     }
-                    
+
                     debug!("Update data: {}", serde_json::to_string_pretty(&json_data).unwrap());
-                    api.posts().edit(&id, None, None, Some(json_data))?
+                    api.posts().edit(&id, None, None, Some(json_data), status.as_deref()).await?
                 } else {
-                    api.posts().edit(&id, title.as_deref(), content.as_deref(), None)?
+                    api.posts()
+                        .edit(&id, title.as_deref(), content.as_deref(), None, status.as_deref())
+                        .await?
                 };
-                
+
                 format_post(post, format);
             }
             PostCommands::Delete { id } => {
                 info!("Deleting post {}...", style(&id).red());
-                api.posts().delete(&id)?;
+                api.posts().delete(&id).await?;
                 info!("Post deleted successfully");
             }
         },
@@ -236,9 +257,11 @@ fn run() -> Result<(), CliError> {
     Ok(())
 }
 
-fn main() {
-    if let Err(err) = run() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if let Err(err) = run().await {
         error!("{}", style(err).red());
         process::exit(1);
     }
+    Ok(())
 }

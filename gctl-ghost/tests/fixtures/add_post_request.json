@@ -1,7 +1,0 @@
-{
-    "posts": [{
-        "title": "Test Title",
-        "markdown": "Test Content",
-        "status": "draft"
-    }]
-} 

@@ -159,7 +159,7 @@ impl<'a> GhostPostsApi<'a> {
             .header("User-Agent", &self.options.user_agent);
 
         if let Some(json) = body {
-            trace!("Request body: {}", &json);
+            trace!("Request body:\n{}", serde_json::to_string_pretty(&json)?);
             request = request.json(&json);
         }
 
@@ -169,7 +169,11 @@ impl<'a> GhostPostsApi<'a> {
             let status = response.status();
             let body = response.text().await?;
 
-            trace!("Error body: {}", body);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+                trace!("Error body:\n{}", serde_json::to_string_pretty(&json)?);
+            } else {
+                trace!("Error body: {}", body);
+            }
 
             let error_message =
                 if let Ok(error_response) = serde_json::from_str::<GhostErrorResponse>(&body) {
@@ -228,11 +232,6 @@ impl<'a> GhostPostsApi<'a> {
         content: Option<&str>,
         status: Option<&str>,
     ) {
-        if !post_data.contains_key("updated_at") {
-            let now = chrono::Utc::now();
-            Self::add_string_field(post_data, "updated_at", &now.to_rfc3339());
-        }
-
         if let Some(title) = title {
             Self::add_string_field(post_data, "title", title);
         }
@@ -256,17 +255,28 @@ impl<'a> GhostPostsApi<'a> {
         json_data: Option<serde_json::Value>,
         status: Option<&str>,
     ) -> Result<Post, error::GhostError> {
-        let mut post_data = if let Some(mut json) = json_data {
-            json.as_object_mut()
-                .map(|obj| {
-                    obj.retain(|_, v| !v.is_null());
-                    obj.to_owned()
-                })
-                .unwrap_or_default()
-        } else {
-            serde_json::Map::new()
-        };
+        // First fetch the existing post
+        let existing_post = self.read(post_id).await?;
+        let existing_data: serde_json::Value = serde_json::to_value(existing_post)?;
 
+        // Create new post data starting with existing data
+        let mut post_data = existing_data
+            .as_object()
+            .map(|obj| obj.to_owned())
+            .unwrap_or_default();
+
+        // Merge JSON data if provided
+        if let Some(json) = json_data {
+            if let Some(obj) = json.as_object() {
+                for (key, value) in obj {
+                    if !value.is_null() {
+                        post_data.insert(key.clone(), value.clone());
+                    }
+                }
+            }
+        }
+
+        // Add/update specific fields
         self.create_post_fields(&mut post_data, title, content, status);
         let request_body = Self::wrap_post_data(post_data);
 
@@ -279,10 +289,6 @@ impl<'a> GhostPostsApi<'a> {
             .make_request("PUT", &format!("posts/{}", post_id), Some(request_body))
             .await?;
         let data: PostsResponse = response.json().await?;
-        trace!(
-            "Response body: {}",
-            serde_json::to_string_pretty(&data).unwrap()
-        );
 
         data.posts
             .into_iter()

@@ -43,11 +43,14 @@
 #![recursion_limit = "256"]
 
 mod api;
+mod auth;
 mod error;
+mod images;
 mod options;
 mod posts;
 
 pub use api::GhostContentApi;
 pub use error::GhostError;
+pub use images::{GhostImageApi, ImageData};
 pub use options::{GhostContentApiOptions, GhostVersion};
 pub use posts::{Post, GhostPostsApi};

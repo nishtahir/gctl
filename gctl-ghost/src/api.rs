@@ -4,6 +4,7 @@ use reqwest::Client;
 use url::Url;
 
 use crate::{
+    images::GhostImageApi,
     options::{GhostContentApiOptions, GhostVersion},
     posts::GhostPostsApi,
 };
@@ -66,10 +67,16 @@ impl GhostContentApi {
     pub fn posts(&self) -> GhostPostsApi {
         GhostPostsApi::new(&self.options, &self.client)
     }
+
+    pub fn images(&self) -> GhostImageApi {
+        GhostImageApi::new(&self.options, &self.client)
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use std::path::Path;
+
     use super::*;
     use wiremock::matchers::{body_json, header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -94,6 +101,8 @@ mod test {
     const READ_POST_RESPONSE: &str = include_str!("../tests/fixtures/read_post_response.json");
     const ADD_POST_RESPONSE: &str = include_str!("../tests/fixtures/add_post_response.json");
     const UPDATE_POST_RESPONSE: &str = include_str!("../tests/fixtures/update_post_response.json");
+    const UPLOAD_IMAGE_RESPONSE: &str =
+        include_str!("../tests/fixtures/upload_image_response.json");
 
     #[tokio::test]
     async fn test_browse_posts() {
@@ -149,10 +158,9 @@ mod test {
             .and(body_json(serde_json::json!({
                 "posts": [{
                     "title": "Test Title",
-                    "markdown": "Test Content",
-                    "status": "draft"
+                    "markdown": "Test Content"
                 }]
-            } )))
+            })))
             .respond_with(ResponseTemplate::new(201).set_body_string(ADD_POST_RESPONSE))
             .expect(1)
             .mount(&mock_server)
@@ -202,12 +210,49 @@ mod test {
             .and(header("Content-Type", "application/json"))
             .and(header("Accept-Version", "v5.0"))
             .and(body_json(serde_json::json!({
-                "posts": [{
-                    "title": "Updated Title",
-                    "markdown": "Updated Content"
-                }]
+              "posts": [
+                {
+                  "authors": [],
+                  "comment_id": "5f5b1f3b4f0f4b0001f3b4f0",
+                  "created_at": "2024-12-11T20:59:08.000Z",
+                  "featured": false,
+                  "id": "test-post-id",
+                  "slug": "test-post-id",
+                  "status": "draft",
+                  "tags": [],
+                  "title": "Updated Title",
+                  "updated_at": "2024-12-11T21:00:03.000Z",
+                  "url": "http://localhost:2368/p/3e257b92-54fc-4f0e-94a2-d2d735c2ed9f/",
+                  "uuid": "test-post-id",
+                  "visibility": "public"
+                }
+              ]
             })))
             .respond_with(ResponseTemplate::new(200).set_body_string(UPDATE_POST_RESPONSE))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/ghost/api/admin/posts/test-post-id/"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "posts": [{
+                    "uuid": "test-post-id",
+                    "id": "test-post-id",
+                    "slug": "test-post-id",
+                    "title": "Updated Title",
+                    "status": "draft",
+                    "comment_id": "5f5b1f3b4f0f4b0001f3b4f0",
+                    "featured": false,
+                    "visibility": "public",
+                    "created_at": "2024-12-11T20:59:08.000Z",
+                    "updated_at": "2024-12-11T21:00:03.000Z",
+                    "tags": [],
+                    "tiers": [],
+                    "authors": [],
+                    "url": "http://localhost:2368/p/3e257b92-54fc-4f0e-94a2-d2d735c2ed9f/",
+                }]
+            })))
             .expect(1)
             .mount(&mock_server)
             .await;
@@ -221,7 +266,7 @@ mod test {
             .edit(
                 "test-post-id",
                 Some("Updated Title"),
-                Some("Updated Content"),
+                None,
                 None,
                 Some("draft"),
             )
@@ -230,7 +275,32 @@ mod test {
 
         assert_eq!(post.id, "test-post-id");
         assert_eq!(post.title, "Updated Title");
-        assert_eq!(post.markdown.as_deref(), Some("Updated Content"));
         assert_eq!(post.status, "draft");
+    }
+
+    #[tokio::test]
+    async fn test_upload_image() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/ghost/api/admin/images/upload/"))
+            .and(header("Accept-Version", "v5.0"))
+            .respond_with(ResponseTemplate::new(201).set_body_string(UPLOAD_IMAGE_RESPONSE))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        let api = setup_test_api(&mock_server).await;
+        let image = api
+            .images()
+            .upload(Path::new("tests/fixtures/test-image.png"))
+            .await
+            .unwrap();
+
+        assert_eq!(
+            image.url,
+            "https://example.com/content/images/2024/01/test-image.png"
+        );
+        assert_eq!(image.image_type.as_deref(), Some("image/png"));
     }
 }

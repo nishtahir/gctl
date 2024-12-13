@@ -3,13 +3,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum GhostError {
     #[error("HTTP error: {0}")]
-    HttpError(String),
+    HttpError(reqwest::Error),
     #[error("Authentication error: {0}")]
     AuthError(String),
     #[error("Parse error: {0}")]
     ParseError(String),
     #[error("API error: {0}")]
     ApiError(String),
+    #[error("File error: {0}")]
+    FileError(String),
 }
 
 impl From<url::ParseError> for GhostError {
@@ -26,7 +28,7 @@ impl From<jsonwebtoken::errors::Error> for GhostError {
 
 impl From<std::io::Error> for GhostError {
     fn from(err: std::io::Error) -> GhostError {
-        GhostError::HttpError(err.to_string())
+        GhostError::FileError(err.to_string())
     }
 }
 
@@ -38,6 +40,6 @@ impl From<serde_json::Error> for GhostError {
 
 impl From<reqwest::Error> for GhostError {
     fn from(err: reqwest::Error) -> Self {
-        GhostError::HttpError(err.to_string())
+        GhostError::HttpError(err)
     }
 }

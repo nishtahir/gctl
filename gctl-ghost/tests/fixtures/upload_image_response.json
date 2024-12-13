@@ -1,0 +1,9 @@
+{
+    "images": [
+        {
+            "url": "https://example.com/content/images/2024/01/test-image.png",
+            "ref": null,
+            "type": "image/png"
+        }
+    ]
+} 

@@ -1,10 +1,10 @@
 use crate::{error, options::GhostContentApiOptions};
 use tracing::{debug, error, trace};
 
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH};
+
+use crate::auth;
 
 /// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,6 +14,7 @@ struct Claims {
     aud: String,
 }
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Post {
     pub id: String,
@@ -36,7 +37,7 @@ pub struct Post {
     pub canonical_url: Option<String>,
     pub tags: Vec<Tag>,
     pub authors: Vec<Author>,
-    pub primary_author: Author,
+    pub primary_author: Option<Author>,
     pub primary_tag: Option<Tag>,
     pub url: String,
     pub excerpt: Option<String>,
@@ -59,6 +60,7 @@ pub struct Post {
     pub markdown: Option<String>,
 }
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
     pub id: String,
@@ -70,6 +72,7 @@ pub struct Tag {
     pub url: String,
 }
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Author {
     pub id: String,
@@ -87,6 +90,7 @@ pub struct Author {
     pub url: String,
 }
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostsResponse {
     posts: Vec<Post>,
@@ -117,24 +121,7 @@ impl<'a> GhostPostsApi<'a> {
     }
 
     fn generate_token(&self) -> Result<String, error::GhostError> {
-        let mut header = Header::new(Algorithm::HS256);
-        header.typ = Some("JWT".to_string());
-        header.kid = Some(self.options.id.clone());
-
-        let now = SystemTime::now();
-        let timestamp = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
-
-        let claims = Claims {
-            iat: timestamp.as_secs() as usize,
-            exp: timestamp.as_secs() as usize + 300,
-            aud: "/admin/".to_string(),
-        };
-
-        let bytes = hex::decode(&self.options.secret)
-            .map_err(|e| error::GhostError::ParseError(e.to_string()))?;
-        let key = EncodingKey::from_secret(&bytes);
-        debug!("Generated JWT token");
-        Ok(encode(&header, &claims, &key)?)
+        auth::generate_token(&self.options.id, &self.options.secret)
     }
 
     async fn make_request(

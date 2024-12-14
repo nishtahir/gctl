@@ -1,9 +1,11 @@
 use crate::auth;
 use crate::{error, options::GhostContentApiOptions};
-use reqwest::Client;
+use reqwest::{
+    multipart::{Form, Part},
+    Client,
+};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use tokio::fs::File;
 use tracing::{debug, error, trace};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,10 +31,12 @@ impl<'a> GhostImageApi<'a> {
         GhostImageApi { options, client }
     }
 
-    pub async fn upload(&self, file_path: &Path) -> Result<ImageData, error::GhostError> {
-        let file = File::open(file_path).await?;
-        let form =
-            reqwest::multipart::Form::new().part("file", reqwest::multipart::Part::stream(file));
+    pub async fn upload(&self, file_path: &Path) -> Result<Vec<ImageData>, error::GhostError> {
+        let form = Form::new()
+            .part("purpose", Part::text("image"))
+            .part("ref", Part::text(file_path.to_string_lossy().into_owned()))
+            .file("file", file_path)
+            .await?;
 
         let host = self.options.url.as_str().trim_end_matches('/');
         let url = format!("{}/ghost/api/admin/images/upload/", host);
@@ -62,10 +66,7 @@ impl<'a> GhostImageApi<'a> {
         }
 
         let data: ImageUploadResponse = response.json().await?;
-        data.images
-            .into_iter()
-            .next()
-            .ok_or_else(|| error::GhostError::ApiError("No image data in response".to_string()))
+        Ok(data.images)
     }
 
     fn generate_token(&self) -> Result<String, error::GhostError> {

@@ -1,4 +1,6 @@
-use gctl_ghost::Post;
+use std::fmt::Display;
+
+use gctl_ghost::{ImageData, Post};
 use tabled::{Table, Tabled};
 
 #[derive(Tabled)]
@@ -11,6 +13,16 @@ struct PostRow {
     status: String,
     #[tabled(rename = "URL")]
     url: String,
+}
+
+#[derive(Tabled)]
+struct ImageRow {
+    #[tabled(rename = "URL")]
+    url: String,
+    #[tabled(rename = "Ref")]
+    ref_: String,
+    #[tabled(rename = "Type")]
+    image_type: String,
 }
 
 pub enum OutputFormat {
@@ -55,4 +67,21 @@ pub fn format_post(post: Post, format: OutputFormat) {
             println!("{}", serde_json::to_string_pretty(&post).unwrap());
         }
     }
-} 
+}
+
+pub fn format_images(images: Vec<ImageData>, format: OutputFormat) {
+    match format {
+        OutputFormat::Table => {
+            let rows = images.into_iter().map(|image| ImageRow {
+                url: image.url,
+                ref_: image.ref_.unwrap_or_else(|| "".to_string()),
+                image_type: image.image_type.unwrap_or_else(|| "".to_string()),
+            });
+            let table = Table::new(rows);
+            println!("{}", table);
+        }
+        OutputFormat::Json => {
+            println!("{}", serde_json::to_string_pretty(&images).unwrap());
+        }
+    }
+}

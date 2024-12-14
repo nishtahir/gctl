@@ -1,37 +1,7 @@
-//! # gctl
-//!
-//! A command-line interface for managing Ghost blog content.
-//!
-//! ## Environment Variables
-//!
-//! - `GHOST_URL`: Your Ghost blog URL
-//! - `GHOST_ADMIN_KEY`: Your Ghost Admin API key
-//!
-//! ## Usage
-//!
-//! List posts:
-//! ```bash
-//! gctl post list
-//! ```
-//!
-//! Create a post:
-//! ```bash
-//! gctl post create "Title" "Content"
-//! ```
-//!
-//! Update a post:
-//! ```bash
-//! gctl post update <id> --title "New Title" --content "New Content"
-//! ```
-//!
-//! Delete a post:
-//! ```bash
-//! gctl post delete <id>
-//! ```
-
 use clap::{Parser, Subcommand};
 use console::style;
 use gctl_ghost::{GhostContentApi, GhostError};
+use std::path::Path;
 use std::process;
 use thiserror::Error;
 use tracing::{debug, error, info, trace, Level};
@@ -39,7 +9,7 @@ use tracing_subscriber::{self, EnvFilter};
 use url::Url;
 
 mod output;
-use output::{format_post, format_posts, OutputFormat};
+use output::{format_images, format_post, format_posts, OutputFormat};
 
 #[derive(Error, Debug)]
 pub enum CliError {
@@ -86,6 +56,11 @@ enum Commands {
         #[command(subcommand)]
         command: PostCommands,
     },
+    /// Image management commands
+    Image {
+        #[command(subcommand)]
+        command: ImageCommands,
+    },
 }
 
 #[derive(Subcommand)]
@@ -124,6 +99,20 @@ enum PostCommands {
     Delete {
         #[arg(help = "Post ID")]
         id: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum ImageCommands {
+    Upload {
+        #[arg(help = "Image file")]
+        file: String,
+
+        #[arg(help = "Image Purpose", long)]
+        purpose: Option<String>,
+
+        #[arg(help = "Image ref", long)]
+        ref_: Option<String>,
     },
 }
 
@@ -187,24 +176,34 @@ async fn run() -> Result<(), CliError> {
                 status,
             } => {
                 info!("Creating new post '{}'...", style(&title).green());
-                
+
                 let post = if let Some(json_str) = json {
                     debug!("Using JSON input");
                     trace!("JSON data: {}", json_str);
                     let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
                         .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
-                    
+
                     if let Some(obj) = json_data.as_object_mut() {
                         obj.retain(|_, v| !v.is_null());
-                        obj.insert("title".to_string(), serde_json::Value::String(title.clone()));
+                        obj.insert(
+                            "title".to_string(),
+                            serde_json::Value::String(title.clone()),
+                        );
                     }
-                    
-                    debug!("Merged JSON data: {}", serde_json::to_string_pretty(&json_data).unwrap());
-                    api.posts().add(&title, None, Some(json_data), status.as_deref()).await?
+
+                    debug!(
+                        "Merged JSON data: {}",
+                        serde_json::to_string_pretty(&json_data).unwrap()
+                    );
+                    api.posts()
+                        .add(&title, None, Some(json_data), status.as_deref())
+                        .await?
                 } else {
-                    api.posts().add(&title, content.as_deref(), None, status.as_deref()).await?
+                    api.posts()
+                        .add(&title, content.as_deref(), None, status.as_deref())
+                        .await?
                 };
-                
+
                 debug!("Post created with ID: {}", style(&post.id).yellow());
                 format_post(post, format);
             }
@@ -233,15 +232,29 @@ async fn run() -> Result<(), CliError> {
                             obj.insert("markdown".to_string(), serde_json::Value::String(content));
                         }
                         if let Some(status) = &status {
-                            obj.insert("status".to_string(), serde_json::Value::String(status.clone()));
+                            obj.insert(
+                                "status".to_string(),
+                                serde_json::Value::String(status.clone()),
+                            );
                         }
                     }
 
-                    debug!("Update data: {}", serde_json::to_string_pretty(&json_data).unwrap());
-                    api.posts().edit(&id, None, None, Some(json_data), status.as_deref()).await?
+                    debug!(
+                        "Update data: {}",
+                        serde_json::to_string_pretty(&json_data).unwrap()
+                    );
+                    api.posts()
+                        .edit(&id, None, None, Some(json_data), status.as_deref())
+                        .await?
                 } else {
                     api.posts()
-                        .edit(&id, title.as_deref(), content.as_deref(), None, status.as_deref())
+                        .edit(
+                            &id,
+                            title.as_deref(),
+                            content.as_deref(),
+                            None,
+                            status.as_deref(),
+                        )
                         .await?
                 };
 
@@ -251,6 +264,18 @@ async fn run() -> Result<(), CliError> {
                 info!("Deleting post {}...", style(&id).red());
                 api.posts().delete(&id).await?;
                 info!("Post deleted successfully");
+            }
+        },
+        Commands::Image { command } => match command {
+            ImageCommands::Upload {
+                file,
+                purpose,
+                ref_,
+            } => {
+                info!("Uploading image {}...", style(&file).green());
+                let file = Path::new(&file);
+                let images = api.images().upload(&file).await?;
+                format_images(images, format);
             }
         },
     }

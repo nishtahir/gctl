@@ -15,7 +15,6 @@ pub enum Error {
     HttpError(#[from] reqwest::Error),
     #[error("API error: {0}")]
     ApiError(String),
-    // ... other variants ...
 }
 
 pub struct GhostContentApi {
@@ -291,16 +290,18 @@ mod test {
             .await;
 
         let api = setup_test_api(&mock_server).await;
-        let image = api
+        let data = api
             .images()
             .upload(Path::new("tests/fixtures/test-image.png"))
             .await
             .unwrap();
 
+        assert_eq!(data.len(), 1);
+
         assert_eq!(
-            image.url,
+            data[0].url,
             "https://example.com/content/images/2024/01/test-image.png"
         );
-        assert_eq!(image.image_type.as_deref(), Some("image/png"));
+        assert_eq!(data[0].image_type.as_deref(), Some("image/png"));
     }
 }

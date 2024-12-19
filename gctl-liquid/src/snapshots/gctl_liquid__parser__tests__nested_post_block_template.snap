@@ -1,0 +1,11 @@
+---
+source: gctl-liquid/src/parser.rs
+expression: output
+---
+{
+  "id": "foo",
+  "lexical": "{\"root\":{\"children\":[{\"markdown\":\"Some content\\n        \",\"type\":\"markdown\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+  "slug": "baz",
+  "title": "bar",
+  "updated": "qux"
+}

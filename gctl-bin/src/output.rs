@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use gctl_ghost::{ImageData, Post};
 use tabled::{Table, Tabled};
 
@@ -25,6 +23,7 @@ struct ImageRow {
     image_type: String,
 }
 
+#[derive(Clone, Copy)]
 pub enum OutputFormat {
     Table,
     Json,
@@ -74,8 +73,8 @@ pub fn format_images(images: Vec<ImageData>, format: OutputFormat) {
         OutputFormat::Table => {
             let rows = images.into_iter().map(|image| ImageRow {
                 url: image.url,
-                ref_: image.ref_.unwrap_or_else(|| "".to_string()),
-                image_type: image.image_type.unwrap_or_else(|| "".to_string()),
+                ref_: image.ref_.unwrap_or_default(),
+                image_type: image.image_type.unwrap_or_default(),
             });
             let table = Table::new(rows);
             println!("{}", table);

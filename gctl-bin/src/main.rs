@@ -1,6 +1,8 @@
 use clap::{Parser, Subcommand};
 use console::style;
 use gctl_ghost::{GhostContentApi, GhostError};
+use gctl_liquid::LiquidParser;
+use std::fs;
 use std::path::Path;
 use std::process;
 use thiserror::Error;
@@ -9,6 +11,7 @@ use tracing_subscriber::{self, EnvFilter};
 use url::Url;
 
 mod output;
+use gctl_liquid::GhostLiquidError;
 use output::{format_images, format_post, format_posts, OutputFormat};
 
 #[derive(Error, Debug)]
@@ -19,6 +22,8 @@ pub enum CliError {
     GhostError(#[from] GhostError),
     #[error("Configuration error: {0}")]
     ConfigError(String),
+    #[error("Liquid template error: {0}")]
+    LiquidError(#[from] GhostLiquidError),
 }
 
 #[derive(Parser)]
@@ -82,6 +87,8 @@ enum PostCommands {
         json: Option<String>,
         #[arg(long)]
         status: Option<String>,
+        #[arg(long)]
+        file: Option<String>,
     },
     /// Update an existing post
     Update {
@@ -94,6 +101,8 @@ enum PostCommands {
         json: Option<String>,
         #[arg(long)]
         status: Option<String>,
+        #[arg(long)]
+        file: Option<String>,
     },
     /// Delete a post
     Delete {
@@ -133,6 +142,95 @@ fn setup_logging(verbose: bool, very_verbose: bool) {
         .init();
 }
 
+struct PostCommandHandler<'a> {
+    api: &'a GhostContentApi,
+    format: OutputFormat,
+}
+
+impl<'a> PostCommandHandler<'a> {
+    fn new(api: &'a GhostContentApi, format: OutputFormat) -> Self {
+        Self { api, format }
+    }
+
+    async fn handle_file_or_json(
+        &self,
+        file: Option<&str>,
+        json: Option<&str>,
+    ) -> Result<Option<serde_json::Value>, CliError> {
+        match (file, json) {
+            (Some(file_path), _) => {
+                debug!("Using template file");
+                let file_content = fs::read_to_string(file_path)
+                    .map_err(|e| CliError::ConfigError(format!("Failed to read file: {}", e)))?;
+                trace!("File content: {}", file_content);
+                Ok(Some(LiquidParser::parse_template(&file_content)?))
+            }
+            (None, Some(json_str)) => {
+                debug!("Using JSON input");
+                trace!("JSON data: {}", json_str);
+                Ok(Some(serde_json::from_str(json_str).map_err(|e| {
+                    CliError::ConfigError(format!("Invalid JSON: {}", e))
+                })?))
+            }
+            (None, None) => Ok(None),
+        }
+    }
+
+    async fn handle_command(&self, command: PostCommands) -> Result<(), CliError> {
+        match command {
+            PostCommands::List => {
+                info!("Fetching all posts...");
+                let posts = self.api.posts().browse().await?;
+                debug!("Found {} posts", posts.len());
+                format_posts(posts, self.format);
+            }
+            PostCommands::Get { id } => {
+                info!("Fetching post {}...", style(&id).yellow());
+                let post = self.api.posts().read(&id).await?;
+                format_post(post, self.format);
+            }
+            PostCommands::Add {
+                title,
+                content,
+                json,
+                status,
+                file,
+            } => {
+                info!("Creating new post '{}'...", style(&title).green());
+                let json_data = self.handle_file_or_json(file.as_deref(), json.as_deref()).await?;
+                let post = self.api
+                    .posts()
+                    .add(&title, content.as_deref(), json_data, status.as_deref())
+                    .await?;
+                debug!("Post created with ID: {}", style(&post.id).yellow());
+                format_post(post, self.format);
+            }
+            PostCommands::Update {
+                id,
+                title,
+                content,
+                json,
+                status,
+                file,
+            } => {
+                info!("Updating post {}...", style(&id).yellow());
+                let json_data = self.handle_file_or_json(file.as_deref(), json.as_deref()).await?;
+                let post = self.api
+                    .posts()
+                    .edit(&id, title.as_deref(), content.as_deref(), json_data, status.as_deref())
+                    .await?;
+                format_post(post, self.format);
+            }
+            PostCommands::Delete { id } => {
+                info!("Deleting post {}...", style(&id).red());
+                self.api.posts().delete(&id).await?;
+                info!("Post deleted successfully");
+            }
+        }
+        Ok(())
+    }
+}
+
 async fn run() -> Result<(), CliError> {
     dotenvy::dotenv().ok();
 
@@ -140,12 +238,8 @@ async fn run() -> Result<(), CliError> {
     setup_logging(cli.verbose, cli.very_verbose);
 
     debug!("Loading configuration...");
-    let url = cli
-        .url
-        .ok_or_else(|| CliError::ConfigError("GHOST_URL is required".to_string()))?;
-    let key = cli
-        .key
-        .ok_or_else(|| CliError::ConfigError("GHOST_ADMIN_KEY is required".to_string()))?;
+    let url = cli.url.ok_or_else(|| CliError::ConfigError("GHOST_URL is required".to_string()))?;
+    let key = cli.key.ok_or_else(|| CliError::ConfigError("GHOST_ADMIN_KEY is required".to_string()))?;
 
     let url = Url::parse(&url)?;
     debug!("Connecting to Ghost at {}", style(&url).cyan());
@@ -157,128 +251,19 @@ async fn run() -> Result<(), CliError> {
     };
 
     match cli.command {
-        Commands::Post { command } => match command {
-            PostCommands::List => {
-                info!("Fetching all posts...");
-                let posts = api.posts().browse().await?;
-                debug!("Found {} posts", posts.len());
-                format_posts(posts, format);
-            }
-            PostCommands::Get { id } => {
-                info!("Fetching post {}...", style(&id).yellow());
-                let post = api.posts().read(&id).await?;
-                format_post(post, format);
-            }
-            PostCommands::Add {
-                title,
-                content,
-                json,
-                status,
-            } => {
-                info!("Creating new post '{}'...", style(&title).green());
-
-                let post = if let Some(json_str) = json {
-                    debug!("Using JSON input");
-                    trace!("JSON data: {}", json_str);
-                    let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
-                        .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
-
-                    if let Some(obj) = json_data.as_object_mut() {
-                        obj.retain(|_, v| !v.is_null());
-                        obj.insert(
-                            "title".to_string(),
-                            serde_json::Value::String(title.clone()),
-                        );
-                    }
-
-                    debug!(
-                        "Merged JSON data: {}",
-                        serde_json::to_string_pretty(&json_data).unwrap()
-                    );
-                    api.posts()
-                        .add(&title, None, Some(json_data), status.as_deref())
-                        .await?
-                } else {
-                    api.posts()
-                        .add(&title, content.as_deref(), None, status.as_deref())
-                        .await?
-                };
-
-                debug!("Post created with ID: {}", style(&post.id).yellow());
-                format_post(post, format);
-            }
-            PostCommands::Update {
-                id,
-                title,
-                content,
-                json,
-                status,
-            } => {
-                info!("Updating post {}...", style(&id).yellow());
-
-                let post = if let Some(json_str) = json {
-                    debug!("Using JSON input");
-                    trace!("JSON data: {}", json_str);
-                    let mut json_data: serde_json::Value = serde_json::from_str(&json_str)
-                        .map_err(|e| CliError::ConfigError(format!("Invalid JSON: {}", e)))?;
-
-                    if let Some(obj) = json_data.as_object_mut() {
-                        obj.retain(|_, v| !v.is_null());
-
-                        if let Some(title) = title {
-                            obj.insert("title".to_string(), serde_json::Value::String(title));
-                        }
-                        if let Some(content) = content {
-                            obj.insert("markdown".to_string(), serde_json::Value::String(content));
-                        }
-                        if let Some(status) = &status {
-                            obj.insert(
-                                "status".to_string(),
-                                serde_json::Value::String(status.clone()),
-                            );
-                        }
-                    }
-
-                    debug!(
-                        "Update data: {}",
-                        serde_json::to_string_pretty(&json_data).unwrap()
-                    );
-                    api.posts()
-                        .edit(&id, None, None, Some(json_data), status.as_deref())
-                        .await?
-                } else {
-                    api.posts()
-                        .edit(
-                            &id,
-                            title.as_deref(),
-                            content.as_deref(),
-                            None,
-                            status.as_deref(),
-                        )
-                        .await?
-                };
-
-                format_post(post, format);
-            }
-            PostCommands::Delete { id } => {
-                info!("Deleting post {}...", style(&id).red());
-                api.posts().delete(&id).await?;
-                info!("Post deleted successfully");
-            }
-        },
+        Commands::Post { command } => {
+            PostCommandHandler::new(&api, format).handle_command(command).await?;
+        }
         Commands::Image { command } => match command {
-            ImageCommands::Upload {
-                file,
-                purpose,
-                ref_,
-            } => {
+            ImageCommands::Upload { file, purpose, ref_ } => {
                 info!("Uploading image {}...", style(&file).green());
                 let file = Path::new(&file);
-                let images = api.images().upload(&file).await?;
+                let images = api.images().upload(file, purpose, ref_).await?;
                 format_images(images, format);
             }
         },
     }
+
     Ok(())
 }
 

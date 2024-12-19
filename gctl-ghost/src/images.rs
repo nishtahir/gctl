@@ -31,12 +31,21 @@ impl<'a> GhostImageApi<'a> {
         GhostImageApi { options, client }
     }
 
-    pub async fn upload(&self, file_path: &Path) -> Result<Vec<ImageData>, error::GhostError> {
-        let form = Form::new()
-            .part("purpose", Part::text("image"))
-            .part("ref", Part::text(file_path.to_string_lossy().into_owned()))
-            .file("file", file_path)
-            .await?;
+    pub async fn upload(
+        &self,
+        file_path: &Path,
+        purpose: Option<String>,
+        ref_: Option<String>,
+    ) -> Result<Vec<ImageData>, error::GhostError> {
+        let mut form = Form::new().file("file", file_path).await?;
+
+        if let Some(purpose) = purpose {
+            form = form.part("purpose", Part::text(purpose));
+        }
+
+        if let Some(ref_) = ref_ {
+            form = form.part("ref", Part::text(ref_));
+        }
 
         let host = self.options.url.as_str().trim_end_matches('/');
         let url = format!("{}/ghost/api/admin/images/upload/", host);

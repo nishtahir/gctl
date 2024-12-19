@@ -110,6 +110,51 @@ struct GhostErrorResponse {
     errors: Vec<GhostErrorDetails>,
 }
 
+#[derive(Default)]
+struct PostBuilder {
+    data: serde_json::Map<String, serde_json::Value>,
+}
+
+impl PostBuilder {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn from_existing(value: &serde_json::Value) -> Self {
+        Self {
+            data: value.as_object().map(|obj| obj.to_owned()).unwrap_or_default(),
+        }
+    }
+
+    fn merge_json(&mut self, json: Option<serde_json::Value>) {
+        if let Some(json) = json {
+            if let Some(obj) = json.as_object() {
+                for (key, value) in obj {
+                    if !value.is_null() {
+                        self.data.insert(key.clone(), value.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    fn add_fields(&mut self, title: Option<&str>, content: Option<&str>, status: Option<&str>) {
+        if let Some(title) = title {
+            self.data.insert("title".into(), title.into());
+        }
+        if let Some(content) = content {
+            self.data.insert("markdown".into(), content.into());
+        }
+        if let Some(status) = status {
+            self.data.insert("status".into(), status.into());
+        }
+    }
+
+    fn build(self) -> serde_json::Value {
+        serde_json::json!({ "posts": [self.data] })
+    }
+}
+
 pub struct GhostPostsApi<'a> {
     options: &'a GhostContentApiOptions,
     client: &'a Client,
@@ -162,17 +207,25 @@ impl<'a> GhostPostsApi<'a> {
                 trace!("Error body: {}", body);
             }
 
-            let error_message =
-                if let Ok(error_response) = serde_json::from_str::<GhostErrorResponse>(&body) {
-                    error_response
-                        .errors
-                        .into_iter()
-                        .map(|e| format!("{} ({})", e.message, e.error_type.unwrap_or_default()))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                } else {
-                    body
-                };
+            let error_message = if let Ok(error_response) = serde_json::from_str::<GhostErrorResponse>(&body) {
+                error_response
+                    .errors
+                    .into_iter()
+                    .map(|e| {
+                        let context = e.context.unwrap_or_default();
+                        let code = e.code.unwrap_or_default();
+                        format!("{} (type: {}, context: {}, code: {})", 
+                            e.message, 
+                            e.error_type.unwrap_or_default(),
+                            context,
+                            code
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            } else {
+                body
+            };
 
             error!("API request failed: {} - {}", status, error_message);
             return Err(error::GhostError::ApiError(format!(
@@ -201,39 +254,6 @@ impl<'a> GhostPostsApi<'a> {
             .ok_or_else(|| error::GhostError::ApiError("No post found".to_string()))
     }
 
-    fn add_string_field(
-        obj: &mut serde_json::Map<String, serde_json::Value>,
-        key: &str,
-        value: &str,
-    ) {
-        obj.insert(
-            key.to_string(),
-            serde_json::Value::String(value.to_string()),
-        );
-    }
-
-    fn create_post_fields(
-        &self,
-        post_data: &mut serde_json::Map<String, serde_json::Value>,
-        title: Option<&str>,
-        content: Option<&str>,
-        status: Option<&str>,
-    ) {
-        if let Some(title) = title {
-            Self::add_string_field(post_data, "title", title);
-        }
-        if let Some(content) = content {
-            Self::add_string_field(post_data, "markdown", content);
-        }
-        if let Some(status) = status {
-            Self::add_string_field(post_data, "status", status);
-        }
-    }
-
-    fn wrap_post_data(post_data: serde_json::Map<String, serde_json::Value>) -> serde_json::Value {
-        serde_json::json!({ "posts": [post_data] })
-    }
-
     pub async fn edit(
         &self,
         post_id: &str,
@@ -242,38 +262,13 @@ impl<'a> GhostPostsApi<'a> {
         json_data: Option<serde_json::Value>,
         status: Option<&str>,
     ) -> Result<Post, error::GhostError> {
-        // First fetch the existing post
         let existing_post = self.read(post_id).await?;
-        let existing_data: serde_json::Value = serde_json::to_value(existing_post)?;
-
-        // Create new post data starting with existing data
-        let mut post_data = existing_data
-            .as_object()
-            .map(|obj| obj.to_owned())
-            .unwrap_or_default();
-
-        // Merge JSON data if provided
-        if let Some(json) = json_data {
-            if let Some(obj) = json.as_object() {
-                for (key, value) in obj {
-                    if !value.is_null() {
-                        post_data.insert(key.clone(), value.clone());
-                    }
-                }
-            }
-        }
-
-        // Add/update specific fields
-        self.create_post_fields(&mut post_data, title, content, status);
-        let request_body = Self::wrap_post_data(post_data);
-
-        trace!(
-            "Request body: {}",
-            serde_json::to_string_pretty(&request_body).unwrap()
-        );
+        let mut builder = PostBuilder::from_existing(&serde_json::to_value(existing_post)?);
+        builder.merge_json(json_data);
+        builder.add_fields(title, content, status);
 
         let response = self
-            .make_request("PUT", &format!("posts/{}", post_id), Some(request_body))
+            .make_request("PUT", &format!("posts/{}", post_id), Some(builder.build()))
             .await?;
         let data: PostsResponse = response.json().await?;
 
@@ -290,33 +285,14 @@ impl<'a> GhostPostsApi<'a> {
         json_data: Option<serde_json::Value>,
         status: Option<&str>,
     ) -> Result<Post, error::GhostError> {
-        let mut post_data = if let Some(mut json) = json_data {
-            json.as_object_mut()
-                .map(|obj| {
-                    obj.retain(|_, v| !v.is_null());
-                    obj.to_owned()
-                })
-                .unwrap_or_default()
-        } else {
-            serde_json::Map::new()
-        };
-
-        self.create_post_fields(&mut post_data, Some(title), content, status);
-        let request_body = Self::wrap_post_data(post_data);
-
-        trace!(
-            "Request body: {}",
-            serde_json::to_string_pretty(&request_body).unwrap()
-        );
+        let mut builder = PostBuilder::new();
+        builder.merge_json(json_data);
+        builder.add_fields(Some(title), content, status);
 
         let response = self
-            .make_request("POST", "posts", Some(request_body))
+            .make_request("POST", "posts", Some(builder.build()))
             .await?;
         let data: PostsResponse = response.json().await?;
-        trace!(
-            "Response body: {}",
-            serde_json::to_string_pretty(&data).unwrap()
-        );
 
         data.posts
             .into_iter()

@@ -1,0 +1,15 @@
+[package]
+name = "gctl-liquid"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+regex = "1.10"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+pest = "2.1"
+pest_derive = "2.1"
+
+[dev-dependencies]
+insta = { version = "1.26.0", features = ["json", "csv"] }

@@ -24,9 +24,8 @@ pub fn generate_token(id: &str, secret: &str) -> Result<String, GhostError> {
         aud: "/admin/".to_string(),
     };
 
-    let bytes = hex::decode(secret)
-        .map_err(|e| GhostError::ParseError(e.to_string()))?;
+    let bytes = hex::decode(secret).map_err(|e| GhostError::ParseError(e.to_string()))?;
     let key = EncodingKey::from_secret(&bytes);
     debug!("Generated JWT token");
     Ok(encode(&header, &claims, &key)?)
-} 
+}

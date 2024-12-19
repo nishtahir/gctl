@@ -1,0 +1,23 @@
+WHITESPACE   = _{ " " | "\t" | "\r" | "\n" }
+identifier   = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" | "-")* }
+string       = @{ "\"" ~ inner_string ~ "\"" | "'" ~ inner_string ~ "'" }
+inner_string = @{ (!("\"" | "'") ~ ANY)* }
+number       = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+boolean      =  { "true" | "false" }
+nil          =  { "nil" }
+
+value = { nil | boolean | string | number }
+
+block_param    =  { identifier ~ ":" ~ value }
+block_params   =  { block_param* }
+block_start    = _{ "{%" ~ WHITESPACE* ~ PUSH(block_type) ~ block_params ~ WHITESPACE* ~ "%}" }
+block_end      = _{ "{%" ~ WHITESPACE* ~ "end" ~ POP ~ WHITESPACE* ~ "%}" }
+block_children =  { node* }
+block          =  { block_start ~ block_children ~ block_end }
+block_type     =  { "post" | "markdown" | "include" }
+
+
+raw_content = @{ (!("{%") ~ ANY)+ }
+
+node = _{ block | raw_content }
+root =  _{ SOI ~ node* ~ EOI }

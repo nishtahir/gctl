@@ -292,7 +292,7 @@ mod test {
         let api = setup_test_api(&mock_server).await;
         let data = api
             .images()
-            .upload(Path::new("tests/fixtures/test-image.png"))
+            .upload(Path::new("tests/fixtures/test-image.png"), None, None)
             .await
             .unwrap();
 

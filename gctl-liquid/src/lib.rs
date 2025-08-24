@@ -1,7 +1,7 @@
 mod ast;
 mod error;
-mod visitor;
 mod parser;
+mod visitor;
 
-pub use parser::LiquidParser;
 pub use error::GhostLiquidError;
+pub use parser::LiquidParser;

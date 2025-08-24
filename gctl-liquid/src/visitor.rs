@@ -77,7 +77,8 @@ impl GhostVisitor {
             .map(|child| child.accept(self))
             .collect::<Result<Vec<Value>, GhostLiquidError>>()?;
 
-        let markdown = children.iter()
+        let markdown = children
+            .iter()
             .map(|v| v.as_str().unwrap_or(""))
             .collect::<Vec<_>>()
             .join("");

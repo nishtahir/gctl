@@ -23,6 +23,7 @@ tracing = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1.0", features = ["fs"] }
 serde_with = { workspace = true }
+bon = { workspace = true }
 
 [dev-dependencies]
 insta = "1.41.1"

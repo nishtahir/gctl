@@ -1,15 +1,38 @@
 use gctl_ghost::{ImageData, Post};
 use tabled::{Table, Tabled};
 
+use crate::error::GctlCliError;
+
+#[derive(Clone, Copy)]
+pub enum OutputFormat {
+    Table,
+    Json,
+}
+
+impl TryFrom<&str> for OutputFormat {
+    type Error = GctlCliError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "table" => Ok(OutputFormat::Table),
+            "json" => Ok(OutputFormat::Json),
+            _ => Err(GctlCliError::ConfigError(format!(
+                "Invalid output format {}",
+                value
+            ))),
+        }
+    }
+}
+
 #[derive(Tabled)]
 struct PostRow {
-    #[tabled(rename = "ID")]
+    #[tabled(rename = "Id")]
     id: String,
     #[tabled(rename = "Title")]
     title: String,
     #[tabled(rename = "Status")]
     status: String,
-    #[tabled(rename = "URL")]
+    #[tabled(rename = "Url")]
     url: String,
 }
 
@@ -23,22 +46,16 @@ struct ImageRow {
     image_type: String,
 }
 
-#[derive(Clone, Copy)]
-pub enum OutputFormat {
-    Table,
-    Json,
-}
-
 pub fn format_posts(posts: Vec<Post>, format: OutputFormat) {
     match format {
         OutputFormat::Table => {
             let rows: Vec<PostRow> = posts
                 .into_iter()
                 .map(|p| PostRow {
-                    id: p.id,
-                    title: p.title,
-                    status: p.status,
-                    url: p.url,
+                    id: p.id.unwrap_or_default(),
+                    title: p.title.unwrap_or_default(),
+                    status: p.status.unwrap_or_default(),
+                    url: p.url.unwrap_or_default(),
                 })
                 .collect();
             let table = Table::new(rows);
@@ -54,10 +71,10 @@ pub fn format_post(post: Post, format: OutputFormat) {
     match format {
         OutputFormat::Table => {
             let rows = vec![PostRow {
-                id: post.id,
-                title: post.title,
-                status: post.status,
-                url: post.url,
+                id: post.id.unwrap_or_default(),
+                title: post.title.unwrap_or_default(),
+                status: post.status.unwrap_or_default(),
+                url: post.url.unwrap_or_default(),
             }];
             let table = Table::new(rows);
             println!("{}", table);

@@ -22,7 +22,7 @@ pub struct ImageData {
 }
 
 pub struct GhostImageApi<'a> {
-    options: &'a GhostContentApiOptions,
+    options: &'a GhostContentApiOptions<'a>,
     client: &'a Client,
 }
 
@@ -59,7 +59,7 @@ impl<'a> GhostImageApi<'a> {
             .post(&url)
             .header("Accept-Version", self.options.version.as_ref())
             .header("Authorization", format!("Ghost {}", token))
-            .header("User-Agent", &self.options.user_agent)
+            .header("User-Agent", self.options.user_agent)
             .multipart(form)
             .send()
             .await?;

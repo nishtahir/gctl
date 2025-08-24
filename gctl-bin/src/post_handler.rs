@@ -7,6 +7,7 @@ use tracing::{debug, info};
 use crate::{
     cli::{PostAddArgs, PostCommands, PostDeleteArgs, PostGetArgs, PostUpdateArgs},
     error::GctlCliError,
+    markdown::parse_jekyll_formated_markdown,
     output::{format_post, format_posts, OutputFormat},
 };
 use bon::Builder;
@@ -63,6 +64,13 @@ impl<'a> PostCommandHandler<'a> {
                 if let Some(json) = json {
                     let content = fs::read_to_string(json)?;
                     post_data = serde_json::from_str(&content)?;
+                }
+
+                if let Some(markdown) = markdown {
+                    let content = fs::read_to_string(markdown)?;
+                    // TODO: These should be merged into the default to allow
+                    // cascading overwritting.
+                    post_data = parse_jekyll_formated_markdown(&content)?;
                 }
 
                 if let Some(id) = id {

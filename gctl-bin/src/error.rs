@@ -9,6 +9,8 @@ pub enum GctlCliError {
     GhostError(#[from] GhostError),
     #[error("Configuration error: {0}")]
     ConfigError(String),
+    #[error("Parse error: {0}")]
+    ParseError(String),
 }
 
 impl From<std::io::Error> for GctlCliError {

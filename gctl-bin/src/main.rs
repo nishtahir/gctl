@@ -15,6 +15,7 @@ mod cli;
 mod error;
 mod image_handler;
 mod log;
+mod markdown;
 mod output;
 mod post_handler;
 

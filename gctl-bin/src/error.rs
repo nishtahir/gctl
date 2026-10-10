@@ -15,12 +15,12 @@ pub enum GctlCliError {
 
 impl From<std::io::Error> for GctlCliError {
     fn from(value: std::io::Error) -> Self {
-        todo!()
+        GctlCliError::ConfigError(value.to_string())
     }
 }
 
 impl From<serde_json::Error> for GctlCliError {
     fn from(err: serde_json::Error) -> Self {
-        todo!()
+        GctlCliError::ParseError(err.to_string())
     }
 }

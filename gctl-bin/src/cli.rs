@@ -13,9 +13,9 @@ pub struct GctlCli {
     #[command(subcommand)]
     pub command: GctlCommands,
     #[arg(long, env = "GHOST_URL", global = true, required = false)]
-    pub ghost_url: String,
+    pub ghost_url: Option<String>,
     #[arg(long, env = "GHOST_ADMIN_KEY", global = true, required = false)]
-    pub ghost_admin_key: String,
+    pub ghost_admin_key: Option<String>,
     #[arg(
         long,
         env = "GHOST_VERSION",
@@ -46,6 +46,11 @@ impl GctlCli {
 
 #[derive(Subcommand)]
 pub enum GctlCommands {
+    #[command(about = "Manage stored credentials")]
+    Auth {
+        #[command(subcommand)]
+        command: AuthCommands,
+    },
     Post {
         #[command(subcommand)]
         command: PostCommands,
@@ -54,6 +59,16 @@ pub enum GctlCommands {
         #[command(subcommand)]
         command: ImageCommands,
     },
+}
+
+#[derive(Subcommand)]
+pub enum AuthCommands {
+    #[command(about = "Prompt for a Ghost URL and Admin API key and store them locally")]
+    Login,
+    #[command(about = "Remove stored credentials")]
+    Logout,
+    #[command(about = "Show the stored login")]
+    Status,
 }
 
 #[derive(Subcommand)]

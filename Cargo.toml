@@ -6,6 +6,7 @@ members = [
     "gctl-ghost",
     "gctl-liquid"
 ]
+default-members = ["gctl-bin"]
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

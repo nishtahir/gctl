@@ -40,6 +40,53 @@ impl PostDataBuilder {
     }
 }
 
+/// Criteria for listing posts. Every field that is set must match.
+#[derive(Debug, Default, Clone)]
+pub struct PostFilter {
+    /// `draft`, `published`, `scheduled` or `sent`. All of them when `None`.
+    pub status: Option<String>,
+    pub tag: Option<String>,
+    pub author: Option<String>,
+    pub featured: Option<bool>,
+    pub visibility: Option<String>,
+    /// Raw Ghost NQL, ANDed with the other criteria.
+    pub raw: Option<String>,
+    /// Maximum number of posts to return.
+    pub limit: Option<usize>,
+}
+
+impl PostFilter {
+    /// Builds the Ghost NQL `filter` query value.
+    pub fn to_nql(&self) -> String {
+        let mut parts = vec![match &self.status {
+            Some(status) => format!("status:{}", quote(status)),
+            // Without an explicit status Ghost only returns drafts.
+            None => "status:[draft,published,scheduled,sent]".to_string(),
+        }];
+        if let Some(tag) = &self.tag {
+            parts.push(format!("tag:{}", quote(tag)));
+        }
+        if let Some(author) = &self.author {
+            parts.push(format!("author:{}", quote(author)));
+        }
+        if let Some(featured) = self.featured {
+            parts.push(format!("featured:{featured}"));
+        }
+        if let Some(visibility) = &self.visibility {
+            parts.push(format!("visibility:{}", quote(visibility)));
+        }
+        if let Some(raw) = &self.raw {
+            parts.push(format!("({raw})"));
+        }
+        parts.join("+")
+    }
+}
+
+/// Single-quote a value so slugs with special characters stay literal.
+fn quote(value: &str) -> String {
+    format!("'{}'", value.replace('\\', "\\\\").replace('\'', "\\'"))
+}
+
 pub struct GhostPostsApi<'a> {
     options: &'a GhostContentApiOptions<'a>,
     client: &'a Client,
@@ -60,6 +107,17 @@ impl<'a> GhostPostsApi<'a> {
         endpoint: &str,
         body: Option<&serde_json::Value>,
     ) -> Result<reqwest::Response, error::GhostError> {
+        self.make_request_with_query(method, endpoint, body, &[])
+            .await
+    }
+
+    async fn make_request_with_query(
+        &self,
+        method: &str,
+        endpoint: &str,
+        body: Option<&serde_json::Value>,
+        query: &[(&str, &str)],
+    ) -> Result<reqwest::Response, error::GhostError> {
         let host = self.options.url.as_str().trim_end_matches('/');
         let url = format!("{}/ghost/api/admin/{}/", host, endpoint);
         let token = self.generate_token()?;
@@ -73,7 +131,8 @@ impl<'a> GhostPostsApi<'a> {
             .header("Accept-Version", self.options.version.as_ref())
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Ghost {}", token))
-            .header("User-Agent", self.options.user_agent);
+            .header("User-Agent", self.options.user_agent)
+            .query(query);
 
         if let Some(json) = body {
             trace!("Request body:\n{}", serde_json::to_string_pretty(&json)?);
@@ -110,10 +169,40 @@ impl<'a> GhostPostsApi<'a> {
         Ok(response)
     }
 
-    pub async fn browse(&self) -> Result<Vec<Post>, error::GhostError> {
-        let response = self.make_request("GET", "posts", None).await?;
-        let data: PostsResponse = response.json().await?;
-        Ok(data.posts)
+    /// Lists posts matching `filter`, fetching every page (or up to
+    /// `filter.limit` posts).
+    pub async fn browse(&self, filter: &PostFilter) -> Result<Vec<Post>, error::GhostError> {
+        let filter_param = filter.to_nql();
+        // Ghost caps the page size at 100 (`limit=all` included), so walk the pages.
+        let mut posts = Vec::new();
+        let mut page = 1;
+        loop {
+            let page_param = page.to_string();
+            let response = self
+                .make_request_with_query(
+                    "GET",
+                    "posts",
+                    None,
+                    &[
+                        ("filter", filter_param.as_str()),
+                        ("limit", "100"),
+                        ("page", page_param.as_str()),
+                    ],
+                )
+                .await?;
+            let data: PostsResponse = response.json().await?;
+            posts.extend(data.posts);
+            if let Some(limit) = filter.limit {
+                if posts.len() >= limit {
+                    posts.truncate(limit);
+                    return Ok(posts);
+                }
+            }
+            match data.meta.and_then(|m| m.pagination).and_then(|p| p.next) {
+                Some(next) => page = next,
+                None => return Ok(posts),
+            }
+        }
     }
 
     pub async fn read(&self, post_id: &str) -> Result<Post, error::GhostError> {
@@ -159,5 +248,35 @@ impl<'a> GhostPostsApi<'a> {
             .await?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn default_filter_includes_every_status() {
+        assert_eq!(
+            PostFilter::default().to_nql(),
+            "status:[draft,published,scheduled,sent]"
+        );
+    }
+
+    #[test]
+    fn criteria_are_anded_and_quoted() {
+        let filter = PostFilter {
+            status: Some("published".into()),
+            tag: Some("rust".into()),
+            author: Some("o'neil".into()),
+            featured: Some(true),
+            visibility: Some("public".into()),
+            raw: Some("title:~'wasm',slug:foo".into()),
+            limit: None,
+        };
+        assert_eq!(
+            filter.to_nql(),
+            "status:'published'+tag:'rust'+author:'o\\'neil'+featured:true+visibility:'public'+(title:~'wasm',slug:foo)"
+        );
     }
 }

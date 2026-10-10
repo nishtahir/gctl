@@ -26,7 +26,9 @@ impl AuthCommandHandler {
             url_prompt = url_prompt.default(url);
         }
         let ghost_url = url_prompt
-            .validate_with(|input: &String| Url::parse(input).map(|_| ()).map_err(|e| e.to_string()))
+            .validate_with(|input: &String| {
+                Url::parse(input).map(|_| ()).map_err(|e| e.to_string())
+            })
             .interact_text()
             .map_err(|e| GctlCliError::ConfigError(e.to_string()))?;
 

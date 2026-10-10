@@ -41,7 +41,10 @@ async fn run() -> Result<(), GctlCliError> {
     debug!("Loading configuration...");
     // Flags and environment variables take precedence over stored credentials.
     let stored = StoredConfig::load()?;
-    let ghost_url = cli.ghost_url.or(stored.ghost_url).ok_or_else(missing_login)?;
+    let ghost_url = cli
+        .ghost_url
+        .or(stored.ghost_url)
+        .ok_or_else(missing_login)?;
     let ghost_admin_key = cli
         .ghost_admin_key
         .or(stored.ghost_admin_key)

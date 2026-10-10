@@ -16,6 +16,6 @@ pub use error::GhostError;
 pub use images::{GhostImageApi, ImageData};
 pub use model::*;
 pub use options::GhostContentApiOptions;
-pub use posts::GhostPostsApi;
+pub use posts::{GhostPostsApi, PostFilter};
 pub use token::GhostAdminToken;
 pub use version::GhostVersion;

@@ -73,11 +73,48 @@ pub enum AuthCommands {
 
 #[derive(Subcommand)]
 pub enum PostCommands {
-    List,
+    #[command(about = "List posts (all statuses unless --status is given)")]
+    List(PostListArgs),
     Get(PostGetArgs),
     Add(PostAddArgs),
     Update(PostUpdateArgs),
     Delete(PostDeleteArgs),
+}
+
+#[derive(Args)]
+pub struct PostListArgs {
+    #[arg(
+        long,
+        help = "Only posts with this status [default: all]",
+        value_parser = ["draft", "published", "scheduled", "sent"]
+    )]
+    pub status: Option<String>,
+    #[arg(long, help = "Only posts with this tag slug")]
+    pub tag: Option<String>,
+    #[arg(long, help = "Only posts by this author slug")]
+    pub author: Option<String>,
+    #[arg(long, help = "Only featured (true) or non-featured (false) posts")]
+    pub featured: Option<bool>,
+    #[arg(
+        long,
+        help = "Only posts with this visibility",
+        value_parser = ["public", "members", "paid", "tiers"]
+    )]
+    pub visibility: Option<String>,
+    #[arg(
+        long,
+        help = "Raw Ghost filter, e.g. \"published_at:>'2024-01-01'\"; ANDed with the other flags"
+    )]
+    pub filter: Option<String>,
+    #[arg(
+        long,
+        short = 'n',
+        default_value_t = 10,
+        help = "Maximum number of posts to return"
+    )]
+    pub limit: usize,
+    #[arg(long, conflicts_with = "limit", help = "Return every matching post")]
+    pub all: bool,
 }
 
 #[derive(Args)]

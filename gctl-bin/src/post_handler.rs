@@ -1,16 +1,30 @@
 use std::fs;
 
 use console::style;
-use gctl_ghost::{GhostContentApi, Post};
+use gctl_ghost::{GhostContentApi, Post, PostFilter};
 use tracing::{debug, info};
 
 use crate::{
-    cli::{PostAddArgs, PostCommands, PostDeleteArgs, PostGetArgs, PostUpdateArgs},
+    cli::{PostAddArgs, PostCommands, PostDeleteArgs, PostGetArgs, PostListArgs, PostUpdateArgs},
     error::GctlCliError,
     markdown::parse_jekyll_formated_markdown,
     output::{format_post, format_posts, OutputFormat},
 };
 use bon::Builder;
+
+impl From<PostListArgs> for PostFilter {
+    fn from(args: PostListArgs) -> Self {
+        PostFilter {
+            status: args.status,
+            tag: args.tag,
+            author: args.author,
+            featured: args.featured,
+            visibility: args.visibility,
+            raw: args.filter,
+            limit: (!args.all).then_some(args.limit),
+        }
+    }
+}
 
 #[derive(Builder)]
 pub struct PostCommandHandler<'a> {
@@ -21,9 +35,9 @@ pub struct PostCommandHandler<'a> {
 impl<'a> PostCommandHandler<'a> {
     pub async fn handle_command(&self, command: PostCommands) -> Result<(), GctlCliError> {
         match command {
-            PostCommands::List => {
+            PostCommands::List(args) => {
                 info!("Fetching all posts...");
-                let posts = self.api.posts().browse().await?;
+                let posts = self.api.posts().browse(&args.into()).await?;
                 debug!("Found {} posts", posts.len());
                 format_posts(posts, self.format);
             }

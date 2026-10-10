@@ -82,6 +82,18 @@ pub struct Author {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostsResponse {
     pub posts: Vec<Post>,
+    pub meta: Option<Meta>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Meta {
+    pub pagination: Option<Pagination>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Pagination {
+    /// Next page number, `None` on the last page.
+    pub next: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]

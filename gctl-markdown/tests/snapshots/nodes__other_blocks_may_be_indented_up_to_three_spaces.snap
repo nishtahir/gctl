@@ -1,0 +1,120 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"  # Heading\", \"   > quote\", \"  ---\", \"  ```rust\\n  fn main() {}\\n  ```\",\n\"  {{< include \\\"a.md\\\" >}}\", \"    # four spaces is text\"])"
+---
+[
+  {
+    "markdown": "  # Heading",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Heading",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h1",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "   > quote",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "quote",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "extended-quote",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "  ---",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "  ```rust\n  fn main() {}\n  ```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "fn main() {}",
+        "language": "rust",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "  {{< include \"a.md\" >}}",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "{{< include \"a.md\" >}}",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "    # four spaces is text",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "# four spaces is text",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

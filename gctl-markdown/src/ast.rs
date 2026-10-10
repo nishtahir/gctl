@@ -28,6 +28,14 @@ pub enum Block {
     },
     Rule,
     Html(String),
+    /// `{{< include "path" >}}`: content from another file. Replaced by
+    /// [`Document::resolve_includes`]; with `lang`, the file becomes a code block.
+    Include {
+        path: String,
+        lang: Option<String>,
+    },
+    /// Markdown carried over verbatim, e.g. from a Ghost markdown card.
+    Raw(String),
     Image {
         src: String,
         alt: String,

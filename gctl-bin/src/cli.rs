@@ -73,9 +73,27 @@ Status comes from the front matter (`status: draft|published|scheduled`, or \
 `draft: true|false`). Without either, a new post is a draft and an existing \
 post keeps its status.\n\n\
 Recognised front matter: title, slug, id, status, draft, date, tags, \
-categories, description, image, featured, visibility, canonical."
+categories, description, image, featured, visibility, canonical, \
+codeinjection_head, codeinjection_foot.\n\n\
+Reuse content with `{{< include \"snippets/footer.md\" >}}` on a line of its own: \
+the other file's markdown is spliced in there (paths are relative to the including \
+file, and includes may nest). Add `lang=\"rust\"` to include a file as a code block. \
+Includes can only read files inside the pushed directory (or --include-root). Name \
+snippet files or folders starting with `_` so they aren't pushed as posts."
     )]
     Publish(PublishArgs),
+    #[command(
+        about = "Pull posts from Ghost into markdown files",
+        long_about = "Writes each post as `<dir>/<slug>.md` with YAML front matter (including its \
+Ghost `id`, so a later `gctl push` updates the same post). Only posts with Lexical \
+content are pulled. Existing files are matched by id.\n\n\
+A file is only overwritten when it already matches the post, or with --force; \
+otherwise it is reported as a conflict and left alone.\n\n\
+Content markdown can't express (callouts, bookmarks, footnotes, tables, ...) is \
+approximated and listed in the file's `lossy:` front matter. `gctl push` refuses \
+such files until you review them and remove that line."
+    )]
+    Pull(PullArgs),
 }
 
 #[derive(Args)]
@@ -89,6 +107,47 @@ pub struct PublishArgs {
         long,
         help = "Show what would be created or updated without changing anything"
     )]
+    pub dry_run: bool,
+    #[arg(
+        long,
+        value_name = "DIR",
+        help = "Directory `{{< include >}}` may read from (default: the directory being pushed)"
+    )]
+    pub include_root: Option<String>,
+    #[arg(
+        long,
+        help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter)"
+    )]
+    pub force: bool,
+}
+
+#[derive(Args)]
+pub struct PullArgs {
+    #[arg(
+        default_value = "content",
+        help = "Directory to write markdown files to"
+    )]
+    pub path: String,
+    #[arg(
+        long,
+        help = "Only posts with this status",
+        value_parser = ["draft", "published", "scheduled", "sent"]
+    )]
+    pub status: Option<String>,
+    #[arg(long, help = "Only posts with this tag slug")]
+    pub tag: Option<String>,
+    #[arg(long, help = "Only posts by this author slug")]
+    pub author: Option<String>,
+    #[arg(long, help = "Raw Ghost filter, ANDed with the other flags")]
+    pub filter: Option<String>,
+    #[arg(long, short = 'n', help = "Maximum number of posts to pull")]
+    pub limit: Option<usize>,
+    #[arg(
+        long,
+        help = "Overwrite files whose content differs from the post in Ghost"
+    )]
+    pub force: bool,
+    #[arg(long, help = "Show what would be written without changing anything")]
     pub dry_run: bool,
 }
 

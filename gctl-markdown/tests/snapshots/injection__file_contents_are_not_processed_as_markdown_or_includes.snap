@@ -1,0 +1,6 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "injections(&fs, \"content/post.md\")"
+---
+head=Some("# not a heading\n{{< include \"other.md\" >}}\n*not italic* ---\n---\n")
+foot=None

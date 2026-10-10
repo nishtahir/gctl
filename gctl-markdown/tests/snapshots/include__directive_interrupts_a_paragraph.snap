@@ -1,0 +1,26 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "parse(\"text\\n{{< include \\\"a.md\\\" >}}\\nmore\").unwrap().body"
+---
+[
+    Paragraph(
+        [
+            Text {
+                text: "text",
+                format: 0,
+            },
+        ],
+    ),
+    Include {
+        path: "a.md",
+        lang: None,
+    },
+    Paragraph(
+        [
+            Text {
+                text: "more",
+                format: 0,
+            },
+        ],
+    ),
+]

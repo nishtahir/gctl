@@ -5,6 +5,8 @@
 // There is deliberately no implicit WHITESPACE rule: line structure matters.
 
 sp       = _{ " " | "\t" }
+// Up to three spaces may precede a block start (more makes it indented text).
+indent   = _{ " "{0,3} }
 line_end = _{ "\n" | EOI }
 blank    = _{ sp* ~ "\n" | sp+ ~ EOI }
 
@@ -19,24 +21,33 @@ fm_line     = _{ (!"\n" ~ ANY)* ~ "\n" }
 fm_close    = _{ "---" ~ sp* ~ line_end }
 
 body  = { (blank | block)* }
-block = _{ heading | fenced_code | hr | blockquote | ulist | olist | html_block | paragraph }
+block = _{ heading | fenced_code | hr | blockquote | include | ulist | olist | html_block | paragraph }
 
 // ----------------------------------------------------------------- blocks
 
-heading  = { h_marker ~ sp+ ~ h_text ~ line_end }
+// `{{< include "path/to/file.md" >}}` or `{{< include "main.rs" lang="rust" >}}`
+// on a line of its own.
+include      = { indent ~ "{{<" ~ sp* ~ "include" ~ sp+ ~ include_path ~ (sp+ ~ "lang=" ~ include_lang)? ~ sp* ~ ">}}" ~ sp* ~ line_end }
+include_path = ${ "\"" ~ include_text_dq ~ "\"" | "'" ~ include_text_sq ~ "'" }
+include_lang = ${ "\"" ~ include_text_dq ~ "\"" | "'" ~ include_text_sq ~ "'" }
+include_text_dq = @{ (!("\"" | "\n") ~ ANY)* }
+include_text_sq = @{ (!("'" | "\n") ~ ANY)* }
+
+heading  = { indent ~ h_marker ~ sp+ ~ h_text ~ line_end }
 h_marker = @{ "#"{1, 6} }
 h_text   = @{ (!"\n" ~ ANY)+ }
 
-fenced_code = { "```" ~ sp* ~ info ~ "\n" ~ code_body ~ (fence_close | EOI) }
+fenced_code = { indent ~ PUSH(fence) ~ sp* ~ info ~ "\n" ~ code_body ~ (fence_close | EOI) ~ DROP }
+fence       = _{ "```" ~ "`"* }
 info        = @{ (!"\n" ~ !"`" ~ ANY)* }
-fence_close = _{ "```" ~ sp* ~ line_end }
+fence_close = _{ indent ~ PEEK ~ "`"* ~ sp* ~ line_end }
 code_body   = @{ (!fence_close ~ code_line)* }
 code_line   = _{ (!"\n" ~ ANY)+ ~ line_end | "\n" }
 
-hr = { ("---" ~ "-"* | "***" ~ "*"* | "___" ~ "_"*) ~ sp* ~ line_end }
+hr = { indent ~ ("---" ~ "-"* | "***" ~ "*"* | "___" ~ "_"*) ~ sp* ~ line_end }
 
 blockquote = { quote_line+ }
-quote_line = { ">" ~ " "? ~ quote_text ~ line_end }
+quote_line = { indent ~ ">" ~ " "? ~ quote_text ~ line_end }
 quote_text = @{ (!"\n" ~ ANY)* }
 
 ulist     = { ul_item ~ (blank* ~ ul_item)* }
@@ -46,19 +57,26 @@ ol_item   = { ol_marker ~ " " ~ item_text ~ line_end ~ item_cont* }
 ul_marker = @{ "-" | "*" | "+" }
 ol_marker = @{ ASCII_DIGIT{1, 9} ~ ("." | ")") }
 item_text = @{ (!"\n" ~ ANY)* }
-item_cont = @{ (" "{2,} | "\t") ~ (!"\n" ~ ANY)+ ~ line_end }
+item_cont = @{ (sp* ~ "\n")* ~ (" "{2,} | "\t") ~ (!"\n" ~ ANY)+ ~ line_end }
 
-// Raw HTML on its own lines, up to the next blank line. Inline-level tags
-// (<a>, <b>, ...) at the start of a line stay part of the paragraph.
-html_block = @{ &html_start ~ html_line+ }
-html_start = _{ "<" ~ !("/"? ~ inline_tag) ~ (ASCII_ALPHA | "/" | "!") }
-inline_tag = _{ ("a" | "b" | "i" | "em" | "strong" | "code" | "span" | "kbd" | "sub" | "sup" | "br" | "small" | "mark" | "abbr") ~ !ASCII_ALPHANUMERIC }
-html_line  = _{ !(sp* ~ line_end) ~ (!"\n" ~ ANY)+ ~ line_end }
+// Raw HTML on its own lines. <pre>/<script>/<style>/<textarea> blocks and
+// comments run to their closing tag (they may contain blank lines); other
+// HTML runs to the next blank line. Inline-level tags (<a>, <b>, ...) at the
+// start of a line stay part of the paragraph.
+html_block  = @{ html_raw | html_comment | html_other }
+raw_tag     = _{ ^"pre" | ^"script" | ^"style" | ^"textarea" }
+raw_close   = _{ "</" ~ raw_tag ~ ">" }
+html_raw    = _{ indent ~ "<" ~ raw_tag ~ !ASCII_ALPHANUMERIC ~ (!raw_close ~ ANY)* ~ raw_close ~ (!"\n" ~ ANY)* ~ line_end }
+html_comment = _{ indent ~ "<!--" ~ (!"-->" ~ ANY)* ~ "-->" ~ (!"\n" ~ ANY)* ~ line_end }
+html_other  = _{ &(indent ~ html_start) ~ html_line+ }
+html_start  = _{ "<" ~ !("/"? ~ inline_tag) ~ (ASCII_ALPHA | "/" | "!") }
+inline_tag  = _{ ("a" | "b" | "i" | "em" | "strong" | "code" | "span" | "kbd" | "sub" | "sup" | "br" | "small" | "mark" | "abbr") ~ !ASCII_ALPHANUMERIC }
+html_line   = _{ !(sp* ~ line_end) ~ (!"\n" ~ ANY)+ ~ line_end }
 
 paragraph  = { para_first ~ para_more* }
 para_first = @{ (!"\n" ~ ANY)+ ~ line_end }
 para_more  = @{ !(sp* ~ line_end) ~ !para_break ~ (!"\n" ~ ANY)+ ~ line_end }
-para_break = _{ (h_marker ~ " ") | "```" | hr | ">" | ((("-" | "*" | "+") | (ASCII_DIGIT+ ~ ("." | ")"))) ~ " ") }
+para_break = _{ indent ~ ((h_marker ~ " ") | "```" | hr | ">" | include) | ((("-" | "*" | "+") | (ASCII_DIGIT+ ~ ("." | ")"))) ~ " ") }
 
 // ----------------------------------------------------------------- inlines
 

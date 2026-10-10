@@ -1,0 +1,55 @@
+---
+source: gctl-bin/src/pull_handler.rs
+expression: parsed.front_matter
+---
+FrontMatter {
+    id: Some(
+        "6891829ae317750001061429",
+    ),
+    title: Some(
+        "Hello: World",
+    ),
+    slug: Some(
+        "hello-world",
+    ),
+    date: Some(
+        "2024-03-16T18:00:00.000Z",
+    ),
+    status: Some(
+        "published",
+    ),
+    draft: None,
+    tags: [
+        "rust",
+        "#internal",
+    ],
+    categories: [],
+    description: Some(
+        "A summary",
+    ),
+    feature_image: Some(
+        "https://example.com/cover.png",
+    ),
+    featured: Some(
+        true,
+    ),
+    visibility: Some(
+        "members",
+    ),
+    canonical_url: Some(
+        "https://example.com/original",
+    ),
+    codeinjection_head: Some(
+        Inline(
+            "<script>\n  track();\n</script>\n",
+        ),
+    ),
+    codeinjection_foot: Some(
+        Inline(
+            "<div id=\"widget\"></div>",
+        ),
+    ),
+    lossy: [
+        "callout",
+    ],
+}

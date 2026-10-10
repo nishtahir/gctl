@@ -1,0 +1,24 @@
+---
+source: gctl-bin/src/pull_handler.rs
+expression: render_post(&sent).unwrap().unwrap().file
+---
+---
+id: "6891829ae317750001061429"
+title: 'Yes: 123 # not a comment'
+slug: hello-world
+status: published
+date: 2024-03-16T18:00:00.000Z
+tags:
+- rust
+- '#internal'
+description: A summary
+image: https://example.com/cover.png
+featured: true
+visibility: members
+canonical: https://example.com/original
+codeinjection_head: |
+  <script>
+    track();
+  </script>
+codeinjection_foot: <div id="widget"></div>
+---

@@ -133,6 +133,12 @@ snapshot!(
     "- a\n  - b\n    - c"
 );
 snapshot!(list_continuation_line, "- one\n  still one\n- two");
+snapshot!(
+    list_item_with_several_paragraphs,
+    "- first\n\n  second\n- next",
+    "1. one\n\n   more\n\n   even more\n2. two",
+    "- tight\n  lazy continuation\n- next"
+);
 snapshot!(list_blank_lines_between_items, "- a\n\n- b");
 snapshot!(list_marker_type_change, "- a\n\n1. b");
 snapshot!(list_interrupts_paragraph, "intro\n- a");
@@ -150,6 +156,11 @@ snapshot!(
 snapshot!(
     codeblock_is_verbatim,
     "```md\n# not a heading\n\n  - not a list\n*not italic*\n```"
+);
+snapshot!(
+    codeblock_longer_fences,
+    "````md\n```\ninner\n```\n````",
+    "``````\n`````\nstill code\n``````"
 );
 snapshot!(codeblock_unterminated, "```sh\necho hi");
 snapshot!(
@@ -187,6 +198,20 @@ snapshot!(
 );
 snapshot!(html_is_not_markdown, "<div>\n*not italic*\n</div>");
 
+snapshot!(
+    html_raw_blocks_run_to_their_closing_tag,
+    "<pre>\nline one\n\nline three\n</pre>\n\nafter",
+    "<script>\nlet a;\n\nlet b;\n</script>",
+    "<!-- a comment\n\nspanning blank lines -->\n\nafter",
+    // Unterminated: ends at the first blank line like any other HTML.
+    "<pre>\nnever closed\n\nafter"
+);
+snapshot!(
+    html_members_only_comment_is_a_paywall,
+    "free\n\n<!--members-only-->\n\npaid",
+    "<!-- members-only -->"
+);
+
 // ---- image ----
 
 snapshot!(
@@ -216,4 +241,25 @@ snapshot!(
 snapshot!(
     document_front_matter_is_not_body,
     "---\ntitle: T\ntags: [a]\n---\n\nBody"
+);
+
+// ---- indented blocks ----
+
+snapshot!(
+    html_blocks_may_be_indented_up_to_three_spaces,
+    "  <div class=\"a\">\n    <p>one</p>\n  </div>",
+    "   <section>\n   text\n   </section>",
+    // Four spaces is indented text, not a block start.
+    "    <div>not html</div>",
+    // Each chunk of a demo split by blank lines is its own HTML card.
+    "<div class=\"demo\">\n  <h1></h1>\n\n  <div class=\"controls\">\n    <button>Step</button>\n  </div>\n\n  <section>\n    <h2>x</h2>\n  </section>\n</div>"
+);
+snapshot!(
+    other_blocks_may_be_indented_up_to_three_spaces,
+    "  # Heading",
+    "   > quote",
+    "  ---",
+    "  ```rust\n  fn main() {}\n  ```",
+    "  {{< include \"a.md\" >}}",
+    "    # four spaces is text"
 );

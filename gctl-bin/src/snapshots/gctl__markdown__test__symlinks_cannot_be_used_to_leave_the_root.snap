@@ -1,0 +1,6 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 349
+expression: "tree.compile(\"content/post.md\", \"content\")"
+---
+ERROR Markdown error: Include error: link.md: <tree>/outside/secret.md is outside <tree>/content; includes must stay inside the content directory (see --include-root)

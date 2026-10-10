@@ -1,0 +1,115 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"---\\ncodeinjection_head: |\\n  <script>\\n    run();\\n  </script>\\ncodeinjection_foot: |-\\n  <div id=\\\"x\\\"></div>\\n---\\nBody\\n\",\n\"---\\ncodeinjection_head: '<meta name=\\\"robots\\\" content=\\\"noindex\\\">'\\n---\\n\",\n\"---\\ncodeinjection_head: \\\"\\\"\\ncodeinjection_foot:\\n---\\n\",\n\"---\\ncodeinjection_head: [not, a, string]\\n---\\n\",])"
+---
+[
+    (
+        "---\ncodeinjection_head: |\n  <script>\n    run();\n  </script>\ncodeinjection_foot: |-\n  <div id=\"x\"></div>\n---\nBody\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                    codeinjection_head: Some(
+                        Inline(
+                            "<script>\n  run();\n</script>\n",
+                        ),
+                    ),
+                    codeinjection_foot: Some(
+                        Inline(
+                            "<div id=\"x\"></div>",
+                        ),
+                    ),
+                    lossy: [],
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "Body",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "---\ncodeinjection_head: '<meta name=\"robots\" content=\"noindex\">'\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                    codeinjection_head: Some(
+                        Inline(
+                            "<meta name=\"robots\" content=\"noindex\">",
+                        ),
+                    ),
+                    codeinjection_foot: None,
+                    lossy: [],
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\ncodeinjection_head: \"\"\ncodeinjection_foot:\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                    codeinjection_head: Some(
+                        Inline(
+                            "",
+                        ),
+                    ),
+                    codeinjection_foot: None,
+                    lossy: [],
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\ncodeinjection_head: [not, a, string]\n---\n",
+        Err(
+            "Invalid front matter: codeinjection_head: invalid type: sequence, expected HTML text or a `{file: path}` mapping at line 1 column 21",
+        ),
+    ),
+]

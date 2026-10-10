@@ -25,12 +25,12 @@ expression: "cases(&\n[\"![A cat](https://example.com/cat.png)\", r#\"![A cat](/
     "nodes": [
       {
         "alt": "A cat",
-        "caption": "",
+        "caption": "Fluffy",
         "cardWidth": "regular",
         "height": null,
         "href": "",
         "src": "/cat.png",
-        "title": "Fluffy",
+        "title": "",
         "type": "image",
         "version": 1,
         "width": null

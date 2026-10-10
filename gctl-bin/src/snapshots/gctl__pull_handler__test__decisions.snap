@@ -1,0 +1,86 @@
+---
+source: gctl-bin/src/pull_handler.rs
+expression: variants
+---
+[
+    (
+        "missing file",
+        Create,
+    ),
+    (
+        "identical",
+        Unchanged,
+    ),
+    (
+        "extra blank lines",
+        Unchanged,
+    ),
+    (
+        "trailing spaces",
+        Unchanged,
+    ),
+    (
+        "underscore emphasis",
+        Unchanged,
+    ),
+    (
+        "crlf line endings",
+        Unchanged,
+    ),
+    (
+        "front matter keys reordered",
+        Unchanged,
+    ),
+    (
+        "sparse hand-written front matter",
+        Unchanged,
+    ),
+    (
+        "hand-written, date without a time is midnight",
+        Conflict,
+    ),
+    (
+        "hand-written, draft flag disagrees",
+        Conflict,
+    ),
+    (
+        "hand-written, tags disagree",
+        Conflict,
+    ),
+    (
+        "hand-written, different date",
+        Conflict,
+    ),
+    (
+        "edited head injection",
+        Conflict,
+    ),
+    (
+        "injection dropped from the file (not a difference)",
+        Unchanged,
+    ),
+    (
+        "injection emptied in the file (a difference)",
+        Conflict,
+    ),
+    (
+        "edited text",
+        Conflict,
+    ),
+    (
+        "edited text, forced",
+        Update,
+    ),
+    (
+        "edited title",
+        Conflict,
+    ),
+    (
+        "extra space inside a sentence",
+        Conflict,
+    ),
+    (
+        "not even markdown",
+        Conflict,
+    ),
+]

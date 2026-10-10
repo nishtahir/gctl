@@ -7,7 +7,7 @@ impl Document {
     pub fn to_lexical(&self) -> Value {
         json!({
             "root": {
-                "children": self.body.iter().map(block).collect::<Vec<_>>(),
+                "children": blocks(&self.body),
                 "direction": "ltr",
                 "format": "",
                 "indent": 0,
@@ -39,6 +39,21 @@ fn with(mut node: Value, extra: Value) -> Value {
         node.extend(extra.clone());
     }
     node
+}
+
+/// Raw markdown is compiled like any other, so it can span several nodes.
+fn blocks(list: &[Block]) -> Vec<Value> {
+    let mut out = Vec::new();
+    for b in list {
+        match b {
+            Block::Raw(markdown) => {
+                let parsed = crate::parser::parse_blocks(markdown).unwrap_or_default();
+                out.extend(blocks(&parsed));
+            }
+            other => out.push(block(other)),
+        }
+    }
+    out
 }
 
 fn block(b: &Block) -> Value {
@@ -73,7 +88,19 @@ fn block(b: &Block) -> Value {
             items,
         } => list(*ordered, *start, items, 0),
         Block::Rule => json!({ "type": "horizontalrule", "version": 1 }),
+        Block::Html(html) if html.trim() == MEMBERS_ONLY => {
+            json!({ "type": "paywall", "version": 1 })
+        }
         Block::Html(html) => json!({ "type": "html", "version": 1, "html": html }),
+        Block::Raw(_) => unreachable!("raw markdown is expanded by `blocks`"),
+        // Unresolved: show the directive instead of silently dropping content.
+        Block::Include { path, lang } => element(
+            "paragraph",
+            vec![inline(&Inline::Text {
+                text: crate::parser::directive(path, lang.as_deref()),
+                format: 0,
+            })],
+        ),
         Block::Image {
             src,
             alt,
@@ -85,13 +112,23 @@ fn block(b: &Block) -> Value {
             "src": src,
             "width": null,
             "height": null,
-            "title": title.clone().unwrap_or_default(),
+            "title": "",
             "alt": alt,
-            "caption": "",
+            // A markdown image title becomes the visible caption.
+            "caption": escape_html(title.as_deref().unwrap_or_default()),
             "cardWidth": "regular",
             "href": href.clone().unwrap_or_default()
         }),
     }
+}
+
+/// The comment Ghost's HTML uses for the members-only divider.
+pub(crate) const MEMBERS_ONLY: &str = "<!--members-only-->";
+
+fn escape_html(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 fn list(ordered: bool, start: u32, items: &[ListItem], indent: u32) -> Value {

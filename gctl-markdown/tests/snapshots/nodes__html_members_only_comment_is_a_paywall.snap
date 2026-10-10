@@ -1,0 +1,61 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"free\\n\\n<!--members-only-->\\n\\npaid\", \"<!-- members-only -->\"])"
+---
+[
+  {
+    "markdown": "free\n\n<!--members-only-->\n\npaid",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "free",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "type": "paywall",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "paid",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<!-- members-only -->",
+    "nodes": [
+      {
+        "html": "<!-- members-only -->",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  }
+]

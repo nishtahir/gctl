@@ -1,0 +1,48 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "> 💡 Try the [demo](https://example.com) & **read** on\n",
+        [
+            "callout",
+        ],
+    ),
+    (
+        "> No emoji\n",
+        [
+            "callout",
+        ],
+    ),
+    (
+        "[GitHub - x/y](https://github.com/x/y)\n",
+        [
+            "bookmark",
+        ],
+    ),
+    (
+        "[https://example.com](https://example.com)\n",
+        [
+            "bookmark",
+        ],
+    ),
+    (
+        "[https://youtu.be/abc](https://youtu.be/abc)\n",
+        [
+            "embed",
+        ],
+    ),
+    (
+        "[The PDF](/content/files/a.pdf)\n",
+        [
+            "file",
+        ],
+    ),
+    (
+        "[b.pdf](/content/files/b.pdf)\n",
+        [
+            "file",
+        ],
+    ),
+]

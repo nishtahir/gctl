@@ -1,0 +1,104 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "[lexical(\"Before\\n\\n{{< include \\\"demo.html\\\" >}}\\n\\nAfter\\n\"),\nlexical(\"{{<include \\\"DEMO.HTM\\\">}}\"),\nlexical(\"{{< include \\\"demo.html\\\" lang=\\\"html\\\" >}}\"),\nlexical(\"{{< include \\\"notes.md\\\" >}}\"),]"
+---
+[
+  [
+    {
+      "children": [
+        {
+          "detail": 0,
+          "format": 0,
+          "mode": "normal",
+          "style": "",
+          "text": "Before",
+          "type": "extended-text",
+          "version": 1
+        }
+      ],
+      "direction": "ltr",
+      "format": "",
+      "indent": 0,
+      "type": "paragraph",
+      "version": 1
+    },
+    {
+      "html": "<div class=\"demo\">\n  <h1></h1>\n\n  <div class=\"controls\">\n    <button>Step</button>\n  </div>\n\n  <template id=\"t\">\n    <p>hi</p>\n  </template>\n</div>",
+      "type": "html",
+      "version": 1
+    },
+    {
+      "children": [
+        {
+          "detail": 0,
+          "format": 0,
+          "mode": "normal",
+          "style": "",
+          "text": "After",
+          "type": "extended-text",
+          "version": 1
+        }
+      ],
+      "direction": "ltr",
+      "format": "",
+      "indent": 0,
+      "type": "paragraph",
+      "version": 1
+    }
+  ],
+  [
+    {
+      "html": "<p>upper case extension</p>",
+      "type": "html",
+      "version": 1
+    }
+  ],
+  [
+    {
+      "caption": "",
+      "code": "<div class=\"demo\">\n  <h1></h1>\n\n  <div class=\"controls\">\n    <button>Step</button>\n  </div>\n\n  <template id=\"t\">\n    <p>hi</p>\n  </template>\n</div>",
+      "language": "html",
+      "type": "codeblock",
+      "version": 1
+    }
+  ],
+  [
+    {
+      "children": [
+        {
+          "detail": 0,
+          "format": 0,
+          "mode": "normal",
+          "style": "",
+          "text": "Heading",
+          "type": "extended-text",
+          "version": 1
+        }
+      ],
+      "direction": "ltr",
+      "format": "",
+      "indent": 0,
+      "tag": "h1",
+      "type": "extended-heading",
+      "version": 1
+    },
+    {
+      "children": [
+        {
+          "detail": 0,
+          "format": 0,
+          "mode": "normal",
+          "style": "",
+          "text": "text",
+          "type": "extended-text",
+          "version": 1
+        }
+      ],
+      "direction": "ltr",
+      "format": "",
+      "indent": 0,
+      "type": "paragraph",
+      "version": 1
+    }
+  ]
+]

@@ -1,0 +1,9 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs, \"{{< include \\\"_parts/outer.md\\\" >}}\")"
+---
+Outer
+
+Leaf
+
+Shared

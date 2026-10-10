@@ -1,0 +1,6 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "injections(&fs, \"content/post.md\")"
+---
+head=Some("<meta name=\"x\">")
+foot=Some("<script src=\"/foot.js\"></script>\n")

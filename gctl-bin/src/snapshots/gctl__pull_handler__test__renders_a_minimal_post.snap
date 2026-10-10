@@ -1,0 +1,11 @@
+---
+source: gctl-bin/src/pull_handler.rs
+assertion_line: 345
+expression: render_post(&minimal).unwrap().unwrap().file
+---
+---
+id: "abc"
+title: Bare
+slug: bare
+status: draft
+---

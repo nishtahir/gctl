@@ -1,0 +1,26 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "> wise words\n",
+        [],
+    ),
+    (
+        "> old style\n",
+        [],
+    ),
+    (
+        "> first\n>\n> second\n",
+        [],
+    ),
+    (
+        "> one\\\n> two\n",
+        [],
+    ),
+    (
+        "> pulled\n",
+        [],
+    ),
+]

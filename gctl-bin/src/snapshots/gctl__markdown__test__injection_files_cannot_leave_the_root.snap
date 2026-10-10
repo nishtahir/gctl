@@ -1,0 +1,9 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: "[tree.injections(\"content/dotdot.md\", \"content\"),\ntree.injections(\"content/missing.md\", \"content\"),\ntree.injections(\"content/dotdot.md\", \".\"),]"
+---
+[
+    "ERROR Markdown error: Include error: codeinjection_head: ../secret.html: <tree>/secret.html is outside <tree>/content; includes must stay inside the content directory (see --include-root)",
+    "ERROR Markdown error: Include error: codeinjection_foot: nope.html: cannot read <tree>/content/nope.html: No such file or directory (os error 2)",
+    "head=Some(\"<script>steal()</script>\\n\") foot=None",
+]

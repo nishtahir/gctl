@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::Path;
 
 use console::style;
 use gctl_ghost::{GhostContentApi, Post, PostFilter};
@@ -7,7 +8,7 @@ use tracing::{debug, info};
 use crate::{
     cli::{PostAddArgs, PostCommands, PostDeleteArgs, PostGetArgs, PostListArgs, PostUpdateArgs},
     error::GctlCliError,
-    markdown::compile_markdown,
+    markdown::{compile_markdown, Source},
     output::{format_post, format_posts, OutputFormat},
 };
 use bon::Builder;
@@ -82,10 +83,15 @@ impl<'a> PostCommandHandler<'a> {
                 }
 
                 if let Some(markdown) = markdown {
-                    let content = fs::read_to_string(markdown)?;
+                    let content = fs::read_to_string(&markdown)?;
                     // TODO: These should be merged into the default to allow
                     // cascading overwritting.
-                    post_data = compile_markdown(&content)?.post;
+                    let root = Path::new(&markdown).parent().unwrap_or(Path::new("."));
+                    let source = Source {
+                        file: Path::new(&markdown),
+                        root,
+                    };
+                    post_data = compile_markdown(&content, Some(&source))?.post;
                 }
 
                 if let Some(id) = id {

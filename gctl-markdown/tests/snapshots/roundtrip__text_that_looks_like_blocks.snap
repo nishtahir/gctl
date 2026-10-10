@@ -1,0 +1,41 @@
+---
+source: gctl-markdown/tests/roundtrip.rs
+expression: "roundtrip(&[\"\\\\# not a heading\", \"\\\\> not a quote\", \"\\\\- not a list\",\n\"1\\\\. not a list\", \"\\\\--- not a rule\", \"\\\\``` not a fence\",\n\"#hashtag and 1.5 and -no and +no\",])"
+---
+[
+    (
+        "\\# not a heading",
+        "\\# not a heading\n",
+        true,
+    ),
+    (
+        "\\> not a quote",
+        "\\> not a quote\n",
+        true,
+    ),
+    (
+        "\\- not a list",
+        "\\- not a list\n",
+        true,
+    ),
+    (
+        "1\\. not a list",
+        "1\\. not a list\n",
+        true,
+    ),
+    (
+        "\\--- not a rule",
+        "--- not a rule\n",
+        true,
+    ),
+    (
+        "\\``` not a fence",
+        "\\`\\`\\` not a fence\n",
+        true,
+    ),
+    (
+        "#hashtag and 1.5 and -no and +no",
+        "#hashtag and 1.5 and -no and +no\n",
+        true,
+    ),
+]

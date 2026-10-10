@@ -11,6 +11,7 @@ pub fn setup_logging(gctl_level: GctlLogLevel) {
 
     let filter = EnvFilter::from_default_env().add_directive(level.into());
     tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
         .with_env_filter(filter)
         .with_target(false)
         .with_level(true)

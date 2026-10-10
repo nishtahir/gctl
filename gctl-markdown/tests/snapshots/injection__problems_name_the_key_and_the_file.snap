@@ -1,0 +1,8 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "[injections(&fs, \"content/missing.md\"), injections(&fs, \"content/foot.md\"),]"
+---
+[
+    "ERROR Include error: codeinjection_head: nope.html: no such file content/nope.html",
+    "ERROR Include error: codeinjection_foot: nope.html: no such file content/nope.html",
+]

@@ -1,0 +1,12 @@
+---
+source: gctl-bin/src/pull_handler.rs
+assertion_line: 466
+expression: "[with_slug(\"hello-world\"), with_slug(\"2024-01-01-dated\"),\nwith_slug(\"Odd Slug/with..parts\"), with_slug(\"_hidden\"), with_slug(\"\"),]"
+---
+[
+    "content/hello-world.md",
+    "content/2024-01-01-dated.md",
+    "content/odd-slug-with-parts.md",
+    "content/hidden.md",
+    "content/6891829ae317750001061429.md",
+]

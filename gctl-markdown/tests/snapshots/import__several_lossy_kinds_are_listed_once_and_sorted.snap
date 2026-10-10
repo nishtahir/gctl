@@ -1,0 +1,9 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: lossy
+---
+[
+    "bookmark",
+    "callout",
+    "footnote",
+]

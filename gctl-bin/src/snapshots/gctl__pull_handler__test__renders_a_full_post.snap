@@ -1,0 +1,32 @@
+---
+source: gctl-bin/src/pull_handler.rs
+expression: "format!(\"{}\\nlossy: {:?}\", rendered.file, rendered.lossy)"
+---
+---
+id: "6891829ae317750001061429"
+title: 'Hello: World'
+slug: hello-world
+status: published
+date: 2024-03-16T18:00:00.000Z
+tags:
+- rust
+- '#internal'
+description: A summary
+image: https://example.com/cover.png
+featured: true
+visibility: members
+canonical: https://example.com/original
+codeinjection_head: |
+  <script>
+    track();
+  </script>
+codeinjection_foot: <div id="widget"></div>
+lossy:
+- callout
+---
+
+Some **bold** text.
+
+> 💡 Careful
+
+lossy: ["callout"]

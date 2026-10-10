@@ -1,0 +1,7 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: result
+---
+Some(
+    "Markdown error: Include error: codeinjection_head: head.html: file reference was not resolved",
+)

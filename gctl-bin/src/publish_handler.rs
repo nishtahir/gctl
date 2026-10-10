@@ -8,8 +8,8 @@ use tracing::{debug, info};
 
 use crate::cli::PublishArgs;
 use crate::error::GctlCliError;
-use crate::markdown::compile_markdown;
-use crate::output::{format_publish_results, OutputFormat, PublishRow};
+use crate::markdown::{compile_markdown, Source};
+use crate::output::{format_sync_results, OutputFormat, SyncRow};
 
 #[derive(Builder)]
 pub struct PublishCommandHandler<'a> {
@@ -41,19 +41,30 @@ impl<'a> PublishCommandHandler<'a> {
         }
         info!("Publishing {} file(s)...", files.len());
 
+        // Includes may read inside the pushed directory (or the folder of a
+        // single pushed file) unless a wider root is given explicitly.
+        let include_root = match &args.include_root {
+            Some(dir) => PathBuf::from(dir),
+            None if root.is_dir() => root.clone(),
+            None => root
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .map_or_else(|| PathBuf::from("."), Path::to_path_buf),
+        };
+
         let mut rows = Vec::new();
         let mut failures = 0;
         for file in &files {
             let name = display_name(&root, file);
             debug!("Publishing {}", name);
-            match self.publish_file(file, &args).await {
+            match self.publish_file(file, &include_root, &args).await {
                 Ok(Pushed {
                     outcome,
                     post,
                     warning,
                 }) => {
                     let url = post.url.unwrap_or_default();
-                    rows.push(PublishRow {
+                    rows.push(SyncRow {
                         file: name,
                         result: outcome_label(&outcome, args.dry_run).to_string(),
                         status: post.status.unwrap_or_else(|| "(unchanged)".into()),
@@ -65,7 +76,7 @@ impl<'a> PublishCommandHandler<'a> {
                 }
                 Err(err) => {
                     failures += 1;
-                    rows.push(PublishRow {
+                    rows.push(SyncRow {
                         file: name,
                         result: "failed".into(),
                         status: String::new(),
@@ -75,7 +86,7 @@ impl<'a> PublishCommandHandler<'a> {
             }
         }
 
-        format_publish_results(rows, self.format);
+        format_sync_results(rows, self.format);
 
         if failures > 0 {
             return Err(GctlCliError::PublishError(format!(
@@ -86,9 +97,25 @@ impl<'a> PublishCommandHandler<'a> {
         Ok(())
     }
 
-    async fn publish_file(&self, file: &Path, args: &PublishArgs) -> Result<Pushed, GctlCliError> {
+    async fn publish_file(
+        &self,
+        file: &Path,
+        include_root: &Path,
+        args: &PublishArgs,
+    ) -> Result<Pushed, GctlCliError> {
         let content = fs::read_to_string(file)?;
-        let mut post = compile_markdown(&content)?.post;
+        let source = Source {
+            file,
+            root: include_root,
+        };
+        let compiled = compile_markdown(&content, Some(&source))?;
+        if !compiled.lossy.is_empty() && !args.force {
+            return Err(GctlCliError::ParseError(format!(
+                "pulled with approximations ({}); pushing would change the post. Review the file, then delete its `lossy:` line, or push with --force",
+                compiled.lossy.join(", ")
+            )));
+        }
+        let mut post = compiled.post;
 
         if post.title.as_deref().map_or(true, |t| t.trim().is_empty()) {
             return Err(GctlCliError::ParseError(
@@ -184,7 +211,7 @@ fn slug_from_path(file: &Path) -> String {
 /// Lowercase ASCII, with runs of anything but letters and digits collapsed to
 /// `-`. Staying within ASCII keeps the slug stable if Ghost normalizes it, so
 /// the next publish still finds the post.
-fn slugify(name: &str) -> String {
+pub(crate) fn slugify(name: &str) -> String {
     let mut slug = String::new();
     for c in name.chars() {
         if c.is_ascii_alphanumeric() {
@@ -196,7 +223,7 @@ fn slugify(name: &str) -> String {
     slug.trim_matches('-').to_string()
 }
 
-fn display_name(root: &Path, file: &Path) -> String {
+pub(crate) fn display_name(root: &Path, file: &Path) -> String {
     if root.is_file() {
         return file.file_name().map_or_else(
             || file.display().to_string(),
@@ -225,7 +252,7 @@ fn is_hidden(path: &Path) -> bool {
 }
 
 /// A single file, or every markdown file below a directory, in a stable order.
-fn find_content_files(root: &Path) -> Result<Vec<PathBuf>, GctlCliError> {
+pub(crate) fn find_content_files(root: &Path) -> Result<Vec<PathBuf>, GctlCliError> {
     if root.is_file() {
         return Ok(vec![root.to_path_buf()]);
     }

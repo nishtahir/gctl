@@ -36,7 +36,7 @@ pub fn parse(input: &str) -> Result<Document, MarkdownError> {
     Ok(Document { front_matter, body })
 }
 
-fn parse_blocks(input: &str) -> Result<Vec<Block>, MarkdownError> {
+pub(crate) fn parse_blocks(input: &str) -> Result<Vec<Block>, MarkdownError> {
     let pair = MarkdownParser::parse(Rule::blocks_only, input)
         .map_err(Box::new)?
         .next()
@@ -59,17 +59,41 @@ fn parse_body(body: Pair<Rule>) -> Result<Vec<Block>, MarkdownError> {
                 });
             }
             Rule::fenced_code => {
+                // Content loses up to as much indentation as the fence had.
+                let fence_indent = pair.as_str().chars().take_while(|&c| c == ' ').count();
                 let mut inner = pair.into_inner();
                 let language = inner
                     .next()
                     .and_then(|info| info.as_str().split_whitespace().next().map(str::to_string));
                 let code = inner.next().map_or("", |p| p.as_str());
-                blocks.push(Block::CodeBlock {
-                    language,
-                    code: code.strip_suffix('\n').unwrap_or(code).to_string(),
-                });
+                let code = code.strip_suffix('\n').unwrap_or(code);
+                let code = code
+                    .split('\n')
+                    .map(|line| {
+                        let spaces = line.chars().take_while(|&c| c == ' ').count();
+                        &line[spaces.min(fence_indent)..]
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                blocks.push(Block::CodeBlock { language, code });
             }
             Rule::hr => blocks.push(Block::Rule),
+            Rule::include => {
+                let (mut path, mut lang) = (String::new(), None);
+                for part in pair.into_inner() {
+                    let rule = part.as_rule();
+                    let text = part
+                        .into_inner()
+                        .next()
+                        .map_or_else(String::new, |p| p.as_str().to_string());
+                    match rule {
+                        Rule::include_path => path = text,
+                        Rule::include_lang => lang = Some(text),
+                        _ => {}
+                    }
+                }
+                blocks.push(Block::Include { path, lang });
+            }
             Rule::blockquote => {
                 let text = pair
                     .into_inner()
@@ -87,6 +111,14 @@ fn parse_body(body: Pair<Rule>) -> Result<Vec<Block>, MarkdownError> {
         }
     }
     Ok(blocks)
+}
+
+/// The source text of an include directive.
+pub(crate) fn directive(path: &str, lang: Option<&str>) -> String {
+    match lang {
+        Some(lang) => format!("{{{{< include \"{path}\" lang=\"{lang}\" >}}}}"),
+        None => format!("{{{{< include \"{path}\" >}}}}"),
+    }
 }
 
 /// `# Title ##` -> `Title`
@@ -200,6 +232,11 @@ fn quote(blocks: Vec<Block>) -> Block {
                 text: code,
                 format: format::CODE,
             }]),
+            // Includes don't work inside quotes; keep the directive as text.
+            Block::Include { path, lang } => groups.push(vec![Inline::Text {
+                text: directive(&path, lang.as_deref()),
+                format: 0,
+            }]),
             _ => {}
         }
     }
@@ -230,25 +267,45 @@ fn parse_list(pair: Pair<Rule>, ordered: bool) -> Result<Block, MarkdownError> {
         let mut children = Vec::new();
 
         if !continuation.is_empty() {
+            // A continuation that starts after a blank line is a new paragraph
+            // in the item; otherwise it is a lazy continuation of the first line.
+            let starts_new_paragraph = continuation[0].starts_with(['\n', ' ', '\t'])
+                && continuation[0]
+                    .lines()
+                    .next()
+                    .is_some_and(|l| l.trim().is_empty());
             let indent = continuation
                 .iter()
+                .flat_map(|chunk| chunk.lines())
+                .filter(|l| !l.trim().is_empty())
                 .map(|l| l.len() - l.trim_start().len())
                 .min()
                 .unwrap_or(0);
             let dedented = continuation
                 .iter()
-                .map(|l| &l[indent..])
+                .flat_map(|chunk| chunk.lines())
+                .map(|l| {
+                    if l.len() >= indent {
+                        &l[indent..]
+                    } else {
+                        l.trim_start()
+                    }
+                })
                 .collect::<Vec<_>>()
                 .join("\n");
-            for block in parse_blocks(&dedented)? {
+            for (index, block) in parse_blocks(&dedented)?.into_iter().enumerate() {
                 match block {
                     Block::List { .. } => children.push(block),
-                    // Lazy continuation text belongs to the item itself.
                     Block::Paragraph(inlines) => {
-                        content.push(Inline::Text {
-                            text: " ".into(),
-                            format: 0,
-                        });
+                        if index == 0 && !starts_new_paragraph {
+                            content.push(Inline::Text {
+                                text: " ".into(),
+                                format: 0,
+                            });
+                        } else {
+                            content.push(Inline::LineBreak);
+                            content.push(Inline::LineBreak);
+                        }
                         content.extend(inlines);
                     }
                     _ => {}
@@ -341,7 +398,7 @@ fn unquote(title: &str) -> String {
 }
 
 /// Joins neighbouring text with identical formatting.
-fn merge_text(inlines: Vec<Inline>) -> Vec<Inline> {
+pub(crate) fn merge_text(inlines: Vec<Inline>) -> Vec<Inline> {
     let mut merged: Vec<Inline> = Vec::new();
     for inline in inlines {
         if let (

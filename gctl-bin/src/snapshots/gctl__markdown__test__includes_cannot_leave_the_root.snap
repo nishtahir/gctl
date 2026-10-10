@@ -1,0 +1,27 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 331
+expression: results
+---
+[
+    (
+        "dotdot",
+        "ERROR Markdown error: Include error: ../secret.md: <tree>/secret.md is outside <tree>/content; includes must stay inside the content directory (see --include-root)",
+    ),
+    (
+        "lang",
+        "ERROR Markdown error: Include error: ../secret.md: <tree>/secret.md is outside <tree>/content; includes must stay inside the content directory (see --include-root)",
+    ),
+    (
+        "nested",
+        "ERROR Markdown error: Include error: ../../secret.md: <tree>/secret.md is outside <tree>/content; includes must stay inside the content directory (see --include-root)",
+    ),
+    (
+        "widened root",
+        "paragraph: TOP SECRET",
+    ),
+    (
+        "absolute path",
+        "ERROR Markdown error: Include error: <tree>/secret.md: <tree>/secret.md is outside <tree>/content; includes must stay inside the content directory (see --include-root)",
+    ),
+]

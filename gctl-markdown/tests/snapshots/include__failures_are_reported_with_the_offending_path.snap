@@ -1,0 +1,11 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: errors
+---
+[
+    "ERROR: Include error: missing.md: no such file content/missing.md",
+    "ERROR: Include error: self.md: includes form a cycle (content/self.md -> content/self.md)",
+    "ERROR: Include error: ping.md: includes form a cycle (content/ping.md -> content/pong.md -> content/ping.md)",
+    "ERROR: Include error: missing.md: no such file content/missing.md",
+    "ERROR: Include error: nope/x.md: no such file content/nope/x.md",
+]

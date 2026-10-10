@@ -1,0 +1,11 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs,\n\"One\\n\\n{{< include \\\"note.md\\\" >}}\\n\\nTwo\\n\\n{{< include \\\"note.md\\\" >}}\\n\")"
+---
+One
+
+> A note
+
+Two
+
+> A note

@@ -1,0 +1,30 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"````md\\n```\\ninner\\n```\\n````\", \"``````\\n`````\\nstill code\\n``````\"])"
+---
+[
+  {
+    "markdown": "````md\n```\ninner\n```\n````",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "```\ninner\n```",
+        "language": "md",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "``````\n`````\nstill code\n``````",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "`````\nstill code",
+        "language": "",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  }
+]

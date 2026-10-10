@@ -1,0 +1,22 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "**bold** *italic* ~~strike~~ `code` ***both***\n",
+        [],
+    ),
+    (
+        "underlined sup\n",
+        [],
+    ),
+    (
+        "a **padded** b\n",
+        [],
+    ),
+    (
+        "**one two**\n",
+        [],
+    ),
+]

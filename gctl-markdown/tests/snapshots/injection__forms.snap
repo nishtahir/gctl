@@ -1,0 +1,58 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "parsed(&[\"codeinjection_head: <b>inline</b>\",\n\"codeinjection_head: |\\n  <script>\\n    a();\\n  </script>\",\n\"codeinjection_head: {file: _snippets/analytics.html}\",\n\"codeinjection_head:\\n  file: _snippets/analytics.html\\ncodeinjection_foot:\\n  file: \\\"_snippets/foot.html\\\"\",\n\"codeinjection_head: \\\"\\\"\", \"codeinjection_head:\",\n\"codeinjection_head: {path: x.html}\",\n\"codeinjection_head: {file: x.html, extra: 1}\", \"codeinjection_head: {}\",\n\"codeinjection_head: {file: [a, b]}\", \"codeinjection_head: 5\",\n\"codeinjection_head: [a, b]\", \"codeinjection_head: true\",])"
+---
+[
+    (
+        "codeinjection_head: <b>inline</b>",
+        "head=Some(Inline(\"<b>inline</b>\")) foot=None",
+    ),
+    (
+        "codeinjection_head: |\n  <script>\n    a();\n  </script>",
+        "head=Some(Inline(\"<script>\\n  a();\\n</script>\\n\")) foot=None",
+    ),
+    (
+        "codeinjection_head: {file: _snippets/analytics.html}",
+        "head=Some(File(\"_snippets/analytics.html\")) foot=None",
+    ),
+    (
+        "codeinjection_head:\n  file: _snippets/analytics.html\ncodeinjection_foot:\n  file: \"_snippets/foot.html\"",
+        "head=Some(File(\"_snippets/analytics.html\")) foot=Some(File(\"_snippets/foot.html\"))",
+    ),
+    (
+        "codeinjection_head: \"\"",
+        "head=Some(Inline(\"\")) foot=None",
+    ),
+    (
+        "codeinjection_head:",
+        "head=None foot=None",
+    ),
+    (
+        "codeinjection_head: {path: x.html}",
+        "ERROR Invalid front matter: codeinjection_head: unknown field `path`, expected `file` at line 1 column 21",
+    ),
+    (
+        "codeinjection_head: {file: x.html, extra: 1}",
+        "ERROR Invalid front matter: codeinjection_head: unknown field `extra`, expected `file` at line 1 column 21",
+    ),
+    (
+        "codeinjection_head: {}",
+        "ERROR Invalid front matter: codeinjection_head: missing field `file` at line 1 column 21",
+    ),
+    (
+        "codeinjection_head: {file: [a, b]}",
+        "ERROR Invalid front matter: codeinjection_head.file: invalid type: sequence, expected a string at line 1 column 28",
+    ),
+    (
+        "codeinjection_head: 5",
+        "ERROR Invalid front matter: codeinjection_head: invalid type: integer `5`, expected HTML text or a `{file: path}` mapping at line 1 column 21",
+    ),
+    (
+        "codeinjection_head: [a, b]",
+        "ERROR Invalid front matter: codeinjection_head: invalid type: sequence, expected HTML text or a `{file: path}` mapping at line 1 column 21",
+    ),
+    (
+        "codeinjection_head: true",
+        "ERROR Invalid front matter: codeinjection_head: invalid type: boolean `true`, expected HTML text or a `{file: path}` mapping at line 1 column 21",
+    ),
+]

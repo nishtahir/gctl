@@ -1,0 +1,27 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "[resolved(&fs, \"{{< include \\\"code/main.rs\\\" lang=\\\"rust\\\" >}}\"),\nresolved(&fs, \"{{< include \\\"code/notes.txt\\\" lang=\\\"\\\" >}}\"),\nresolved(&fs, \"{{< include \\\"code/jumbled.md\\\" lang=\\\"md\\\" >}}\"),\nresolved(&fs,\n\"{{< include \\\"code/tricky.md\\\" lang=\\\"md\\\" >}}\"),].join(\"\\n=====\\n\")"
+---
+```rust
+fn main() {
+    println!("hi");
+}
+```
+
+=====
+```
+plain
+```
+
+=====
+```md
+# Not a heading
+{{< include "main.rs" >}}
+```
+
+=====
+````md
+```
+inner fence
+```
+````

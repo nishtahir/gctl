@@ -1,0 +1,26 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "---\n",
+        [],
+    ),
+    (
+        "<div class=\"note\">\n  <p>hi</p>\n</div>\n",
+        [],
+    ),
+    (
+        "<pre>\na\n\nb\n</pre>\n",
+        [],
+    ),
+    (
+        "<div>\na\nb\n</div>\n",
+        [],
+    ),
+    (
+        "<!--members-only-->\n",
+        [],
+    ),
+]

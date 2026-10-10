@@ -1,0 +1,13 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "format!(\"{once}\\n=== stable: {}\", once == twice)"
+---
+Before
+
+{{< include "a.md" >}}
+
+{{< include "b.rs" lang="rust" >}}
+
+After
+
+=== stable: true

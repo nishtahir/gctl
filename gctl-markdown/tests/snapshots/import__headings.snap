@@ -1,0 +1,22 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "# One\n",
+        [],
+    ),
+    (
+        "## Two \\*em\\*\n",
+        [],
+    ),
+    (
+        "### Plain\n",
+        [],
+    ),
+    (
+        "###### Six lines\n",
+        [],
+    ),
+]

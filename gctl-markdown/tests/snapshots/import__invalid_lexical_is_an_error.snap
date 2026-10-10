@@ -1,0 +1,10 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: errors
+---
+[
+    "Invalid lexical content: EOF while parsing a value at line 1 column 0",
+    "Invalid lexical content: expected ident at line 1 column 2",
+    "Invalid lexical content: missing `root`",
+    "Invalid lexical content: missing `root`",
+]

@@ -32,6 +32,9 @@ expression: "(&fm, fm.all_tags(), fm.published_at())"
         featured: None,
         visibility: None,
         canonical_url: None,
+        codeinjection_head: None,
+        codeinjection_foot: None,
+        lossy: [],
     },
     [
         "rust",

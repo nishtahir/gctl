@@ -1,0 +1,30 @@
+---
+source: gctl-bin/src/pull_handler.rs
+expression: results
+---
+[
+    (
+        "files match the post",
+        Unchanged,
+    ),
+    (
+        "inline injection and include",
+        Unchanged,
+    ),
+    (
+        "injection file differs",
+        Conflict,
+    ),
+    (
+        "injection file missing",
+        Conflict,
+    ),
+    (
+        "include missing",
+        Conflict,
+    ),
+    (
+        "include escapes the directory",
+        Conflict,
+    ),
+]

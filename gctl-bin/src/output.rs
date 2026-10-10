@@ -170,7 +170,7 @@ fn render_post(post: Post, width: Option<usize>) -> Table {
 }
 
 #[derive(Tabled, serde::Serialize)]
-pub struct PublishRow {
+pub struct SyncRow {
     #[tabled(rename = "File")]
     pub file: String,
     #[tabled(rename = "Result")]
@@ -181,7 +181,7 @@ pub struct PublishRow {
     pub detail: String,
 }
 
-pub fn format_publish_results(rows: Vec<PublishRow>, format: OutputFormat) {
+pub fn format_sync_results(rows: Vec<SyncRow>, format: OutputFormat) {
     match format {
         OutputFormat::Table => {
             let mut table = Table::new(rows);

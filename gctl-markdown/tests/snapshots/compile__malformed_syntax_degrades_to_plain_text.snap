@@ -21,6 +21,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -53,6 +56,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -85,6 +91,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -117,6 +126,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -149,6 +161,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -181,6 +196,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -213,6 +231,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -245,6 +266,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -277,6 +301,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -309,6 +336,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -349,6 +379,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -381,6 +414,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -413,6 +449,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -445,6 +484,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(
@@ -477,6 +519,9 @@ expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\
                     featured: None,
                     visibility: None,
                     canonical_url: None,
+                    codeinjection_head: None,
+                    codeinjection_foot: None,
+                    lossy: [],
                 },
                 body: [
                     Paragraph(

@@ -1,0 +1,5 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs, \"{{< include \\\"snippet.md\\\" >}}\")"
+---
+Snippet body.

@@ -1,0 +1,20 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: "format!(\"{markdown}\\nlossy: {lossy:?}\")"
+---
+# Title
+
+Intro with *emphasis*.
+
+- a
+- b
+
+```py
+x = 1
+```
+
+<!--members-only-->
+
+Members only.
+
+lossy: []

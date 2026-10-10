@@ -1,0 +1,8 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 387
+expression: "tree.compile(\"content/post.md\", \"content\")"
+---
+codeblock: fn main() {
+    // {{< include "nested.md" >}}
+}

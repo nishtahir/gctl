@@ -1,0 +1,129 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: parsed
+---
+[
+    (
+        "{{< include \"a.md\" >}}",
+        [
+            Include {
+                path: "a.md",
+                lang: None,
+            },
+        ],
+    ),
+    (
+        "{{<include \"a.md\">}}",
+        [
+            Include {
+                path: "a.md",
+                lang: None,
+            },
+        ],
+    ),
+    (
+        "{{<   include   'a.md'   >}}",
+        [
+            Include {
+                path: "a.md",
+                lang: None,
+            },
+        ],
+    ),
+    (
+        "{{< include \"dir/b.rs\" lang=\"rust\" >}}",
+        [
+            Include {
+                path: "dir/b.rs",
+                lang: Some(
+                    "rust",
+                ),
+            },
+        ],
+    ),
+    (
+        "{{< include \"c.txt\" lang=\"\" >}}",
+        [
+            Include {
+                path: "c.txt",
+                lang: Some(
+                    "",
+                ),
+            },
+        ],
+    ),
+    (
+        "{{< include \"has space.md\" >}}  ",
+        [
+            Include {
+                path: "has space.md",
+                lang: None,
+            },
+        ],
+    ),
+    (
+        "text {{< include \"a.md\" >}} inside a paragraph",
+        [
+            Paragraph(
+                [
+                    Text {
+                        text: "text {{< include \"a.md\" >}} inside a paragraph",
+                        format: 0,
+                    },
+                ],
+            ),
+        ],
+    ),
+    (
+        "{{< include a.md >}}",
+        [
+            Paragraph(
+                [
+                    Text {
+                        text: "{{< include a.md >}}",
+                        format: 0,
+                    },
+                ],
+            ),
+        ],
+    ),
+    (
+        "{{< include \"a.md\" ",
+        [
+            Paragraph(
+                [
+                    Text {
+                        text: "{{< include \"a.md\"",
+                        format: 0,
+                    },
+                ],
+            ),
+        ],
+    ),
+    (
+        "{{< partial \"a.md\" >}}",
+        [
+            Paragraph(
+                [
+                    Text {
+                        text: "{{< partial \"a.md\" >}}",
+                        format: 0,
+                    },
+                ],
+            ),
+        ],
+    ),
+    (
+        "`{{< include \"a.md\" >}}`",
+        [
+            Paragraph(
+                [
+                    Text {
+                        text: "{{< include \"a.md\" >}}",
+                        format: 16,
+                    },
+                ],
+            ),
+        ],
+    ),
+]

@@ -1,0 +1,8 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: "[tree.injections(\"content/posts/post.md\", \"content\"),\ntree.injections(\"content/posts/inline.md\", \"content\"),]"
+---
+[
+    "head=Some(\"<script>\\n  go();\\n</script>\\n\") foot=Some(\"\")",
+    "head=Some(\"<b>inline</b>\") foot=None",
+]

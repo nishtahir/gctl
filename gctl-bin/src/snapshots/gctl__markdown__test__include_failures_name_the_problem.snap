@@ -1,0 +1,10 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 369
+expression: results
+---
+[
+    "ERROR Markdown error: Include error: nope.md: cannot read <tree>/content/nope.md: No such file or directory (os error 2)",
+    "ERROR Markdown error: Include error: _d: <tree>/content/_d is not a file",
+    "ERROR Markdown error: Include error: a.md: includes form a cycle (<tree>/content/a.md -> <tree>/content/b.md -> <tree>/content/a.md)",
+]

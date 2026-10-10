@@ -1,0 +1,26 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "![A cat](https://example.com/a.png)\n",
+        [],
+    ),
+    (
+        "![](/a.png \"Fig & one\")\n",
+        [],
+    ),
+    (
+        "![x](/a.png \"Tooltip\")\n",
+        [],
+    ),
+    (
+        "[![x](/a.png)](https://example.com)\n",
+        [],
+    ),
+    (
+        "![](/a.png)\n",
+        [],
+    ),
+]

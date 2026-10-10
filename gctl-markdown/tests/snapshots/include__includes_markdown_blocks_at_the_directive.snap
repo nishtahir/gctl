@@ -1,0 +1,14 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs, \"Intro\\n\\n{{< include \\\"footer.md\\\" >}}\\n\\nOutro\\n\")"
+---
+Intro
+
+---
+
+Thanks for reading!
+
+- one
+- two
+
+Outro

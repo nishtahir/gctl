@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "caption text\n",
+        [
+            "gallery-ish",
+        ],
+    ),
+    (
+        "",
+        [
+            "product",
+        ],
+    ),
+]

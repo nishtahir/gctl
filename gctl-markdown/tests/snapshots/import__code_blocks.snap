@@ -1,0 +1,22 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "```rust\nfn main() {}\n```\n",
+        [],
+    ),
+    (
+        "```\nplain\n```\n",
+        [],
+    ),
+    (
+        "```\nno language key\n```\n",
+        [],
+    ),
+    (
+        "````md\na\n```\nb\n````\n",
+        [],
+    ),
+]

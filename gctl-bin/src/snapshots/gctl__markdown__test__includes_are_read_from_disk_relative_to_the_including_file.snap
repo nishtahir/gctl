@@ -1,0 +1,9 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 293
+expression: "tree.compile(\"content/post.md\", \"content\")"
+---
+paragraph: Intro
+paragraph: Footer
+paragraph: Signature
+paragraph: Shared

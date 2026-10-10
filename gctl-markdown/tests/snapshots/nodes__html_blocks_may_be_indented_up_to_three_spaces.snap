@@ -1,0 +1,69 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"  <div class=\\\"a\\\">\\n    <p>one</p>\\n  </div>\",\n\"   <section>\\n   text\\n   </section>\", \"    <div>not html</div>\",\n\"<div class=\\\"demo\\\">\\n  <h1></h1>\\n\\n  <div class=\\\"controls\\\">\\n    <button>Step</button>\\n  </div>\\n\\n  <section>\\n    <h2>x</h2>\\n  </section>\\n</div>\"])"
+---
+[
+  {
+    "markdown": "  <div class=\"a\">\n    <p>one</p>\n  </div>",
+    "nodes": [
+      {
+        "html": "  <div class=\"a\">\n    <p>one</p>\n  </div>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "   <section>\n   text\n   </section>",
+    "nodes": [
+      {
+        "html": "   <section>\n   text\n   </section>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "    <div>not html</div>",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "<div>not html</div>",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<div class=\"demo\">\n  <h1></h1>\n\n  <div class=\"controls\">\n    <button>Step</button>\n  </div>\n\n  <section>\n    <h2>x</h2>\n  </section>\n</div>",
+    "nodes": [
+      {
+        "html": "<div class=\"demo\">\n  <h1></h1>",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "html": "  <div class=\"controls\">\n    <button>Step</button>\n  </div>",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "html": "  <section>\n    <h2>x</h2>\n  </section>\n</div>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  }
+]

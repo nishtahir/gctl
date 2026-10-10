@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/roundtrip.rs
+expression: "format!(\"{once}\\n=== same: {}\", once == twice)"
+---
+# T
+
+Some **bold** text.
+
+- a
+  - b
+
+> q
+
+```rs
+x
+```
+
+=== same: true

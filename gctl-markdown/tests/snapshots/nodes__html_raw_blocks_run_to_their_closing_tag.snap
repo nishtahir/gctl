@@ -1,0 +1,100 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"<pre>\\nline one\\n\\nline three\\n</pre>\\n\\nafter\",\n\"<script>\\nlet a;\\n\\nlet b;\\n</script>\",\n\"<!-- a comment\\n\\nspanning blank lines -->\\n\\nafter\",\n\"<pre>\\nnever closed\\n\\nafter\"])"
+---
+[
+  {
+    "markdown": "<pre>\nline one\n\nline three\n</pre>\n\nafter",
+    "nodes": [
+      {
+        "html": "<pre>\nline one\n\nline three\n</pre>",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<script>\nlet a;\n\nlet b;\n</script>",
+    "nodes": [
+      {
+        "html": "<script>\nlet a;\n\nlet b;\n</script>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<!-- a comment\n\nspanning blank lines -->\n\nafter",
+    "nodes": [
+      {
+        "html": "<!-- a comment\n\nspanning blank lines -->",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<pre>\nnever closed\n\nafter",
+    "nodes": [
+      {
+        "html": "<pre>\nnever closed",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,17 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs, \"Top\\n\\n{{< include \\\"a.md\\\" >}}\\n\\nBottom\\n\")"
+---
+Top
+
+A start
+
+B start
+
+C
+
+B end
+
+A end
+
+Bottom

@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "parse(\"```\\n{{< include \\\"a.md\\\" >}}\\n```\\n\\n    {{< include \\\"b.md\\\" >}}\\n\").unwrap().body"
+---
+[
+    CodeBlock {
+        language: None,
+        code: "{{< include \"a.md\" >}}",
+    },
+    Paragraph(
+        [
+            Text {
+                text: "{{< include \"b.md\" >}}",
+                format: 0,
+            },
+        ],
+    ),
+]

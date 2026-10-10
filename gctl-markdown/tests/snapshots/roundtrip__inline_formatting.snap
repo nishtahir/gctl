@@ -1,0 +1,56 @@
+---
+source: gctl-markdown/tests/roundtrip.rs
+expression: "roundtrip(&[\"**bold** *italic* ~~strike~~ `code` ***both***\",\n\"**bold *and italic* bold**\", \"~~**x**~~\",\n\"snake_case_name and __init__ and a_b\",\n\"2 * 3 * 4 and a ` tick and ~tilde and a [bracket\",\n\"**open and ~~ and \\\\*literal\\\\* and \\\\_x\\\\_\",\n\"[link](https://example.com \\\"Title\\\") and [**bold** link](/x)\",\n\"one  \\ntwo\\\\\\nthree\", \"x < y and <b>tag</b> and a <div> in text\",\n\"naïve **café** 日本語 🎉\",])"
+---
+[
+    (
+        "**bold** *italic* ~~strike~~ `code` ***both***",
+        "**bold** *italic* ~~strike~~ `code` ***both***\n",
+        true,
+    ),
+    (
+        "**bold *and italic* bold**",
+        "**bold** ***and italic*** **bold**\n",
+        false,
+    ),
+    (
+        "~~**x**~~",
+        "~~**x**~~\n",
+        true,
+    ),
+    (
+        "snake_case_name and __init__ and a_b",
+        "snake_case_name and **init** and a_b\n",
+        true,
+    ),
+    (
+        "2 * 3 * 4 and a ` tick and ~tilde and a [bracket",
+        "2 \\* 3 \\* 4 and a \\` tick and ~tilde and a \\[bracket\n",
+        true,
+    ),
+    (
+        "**open and ~~ and \\*literal\\* and \\_x\\_",
+        "\\*\\*open and \\~\\~ and \\*literal\\* and \\_x\\_\n",
+        true,
+    ),
+    (
+        "[link](https://example.com \"Title\") and [**bold** link](/x)",
+        "[link](https://example.com \"Title\") and [**bold** link](/x)\n",
+        true,
+    ),
+    (
+        "one  \ntwo\\\nthree",
+        "one\\\ntwo\\\nthree\n",
+        true,
+    ),
+    (
+        "x < y and <b>tag</b> and a <div> in text",
+        "x < y and \\<b>tag\\</b> and a \\<div> in text\n",
+        true,
+    ),
+    (
+        "naïve **café** 日本語 🎉",
+        "naïve **café** 日本語 🎉\n",
+        true,
+    ),
+]

@@ -1,0 +1,5 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "resolved(&fs, \"{{< include \\\"f0.md\\\" >}}\")"
+---
+ERROR: Include error: f10.md: includes are nested more than 10 files deep

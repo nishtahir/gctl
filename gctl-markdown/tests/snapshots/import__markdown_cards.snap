@@ -1,0 +1,39 @@
+---
+source: gctl-markdown/tests/import.rs
+assertion_line: 278
+expression: results
+---
+[
+    (
+        "Plain **markdown** with `code`.\n",
+        [],
+    ),
+    (
+        "Leading blank line and a [link](/x).\n",
+        [],
+    ),
+    (
+        "Has a footnote[^1].\n\n[^1]: The note.\n",
+        [
+            "footnote",
+        ],
+    ),
+    (
+        "| a | b |\n|---|---|\n| 1 | 2 |\n",
+        [
+            "table",
+        ],
+    ),
+    (
+        "- [ ] todo\n- [x] done\n",
+        [
+            "task list",
+        ],
+    ),
+    (
+        "Inline^[footnote] style.\n",
+        [
+            "footnote",
+        ],
+    ),
+]

@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "see [**this**](https://example.com) and [titled](/x \"A title\")\n",
+        [],
+    ),
+    (
+        "[padded](https://rustup.rs/)\n",
+        [],
+    ),
+    (
+        "[parens](https://en.wikipedia.org/wiki/Rust_%28programming_language%29)\n",
+        [],
+    ),
+]

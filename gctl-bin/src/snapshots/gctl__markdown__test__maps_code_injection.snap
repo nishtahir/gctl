@@ -1,0 +1,29 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: "[post(\"codeinjection_head: |\\n  <script>\\n    a();\\n  </script>\\ncodeinjection_foot: <b>foot</b>\"),\npost(\"slug: x\"), post(\"codeinjection_head: \\\"\\\"\\ncodeinjection_foot: \\\"\\\"\"),]"
+---
+[
+    (
+        "codeinjection_head: |\n  <script>\n    a();\n  </script>\ncodeinjection_foot: <b>foot</b>",
+        Some(
+            "<script>\n  a();\n</script>\n",
+        ),
+        Some(
+            "<b>foot</b>",
+        ),
+    ),
+    (
+        "slug: x",
+        None,
+        None,
+    ),
+    (
+        "codeinjection_head: \"\"\ncodeinjection_foot: \"\"",
+        Some(
+            "",
+        ),
+        Some(
+            "",
+        ),
+    ),
+]

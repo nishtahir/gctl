@@ -1,0 +1,34 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "2 \\* 3 \\* 4 and snake_case and \\_lead and a \\[bracket and \\`tick\\`\n",
+        [],
+    ),
+    (
+        "\\# not a heading\n",
+        [],
+    ),
+    (
+        "\\> not a quote\n",
+        [],
+    ),
+    (
+        "\\- not a list\n",
+        [],
+    ),
+    (
+        "1\\. not a list\n",
+        [],
+    ),
+    (
+        "\\<div> and \\<b>tags\\</b> but 1 < 2\n",
+        [],
+    ),
+    (
+        "back\\\\slash\n",
+        [],
+    ),
+]

@@ -1,0 +1,56 @@
+---
+source: gctl-markdown/tests/roundtrip.rs
+expression: "roundtrip(&[\"# One\\n\\n## Two *em*\\n\\n###### Six\",\n\"> quote **bold**\\n>\\n> second paragraph\",\n\"- a\\n- b\\n  - nested\\n  - nested two\\n- c\",\n\"1. one\\n2. two\\n   - mixed\\n3. three\", \"5. five\\n6. six\",\n\"```rust\\nfn main() {}\\n```\\n\\n```\\nplain\\n```\", \"text\\n\\n---\\n\\n***\",\n\"<div>\\nhtml\\n</div>\\n\\n<!--members-only-->\",\n\"![alt](/a.png \\\"Title\\\")\\n\\n[![linked](/b.png)](https://example.com)\",\n\"text before ![x](/x.png) text after\",])"
+---
+[
+    (
+        "# One\n\n## Two *em*\n\n###### Six",
+        "# One\n\n## Two *em*\n\n###### Six\n",
+        true,
+    ),
+    (
+        "> quote **bold**\n>\n> second paragraph",
+        "> quote **bold**\n>\n> second paragraph\n",
+        true,
+    ),
+    (
+        "- a\n- b\n  - nested\n  - nested two\n- c",
+        "- a\n- b\n  - nested\n  - nested two\n- c\n",
+        true,
+    ),
+    (
+        "1. one\n2. two\n   - mixed\n3. three",
+        "1. one\n2. two\n   - mixed\n3. three\n",
+        true,
+    ),
+    (
+        "5. five\n6. six",
+        "5. five\n6. six\n",
+        true,
+    ),
+    (
+        "```rust\nfn main() {}\n```\n\n```\nplain\n```",
+        "```rust\nfn main() {}\n```\n\n```\nplain\n```\n",
+        true,
+    ),
+    (
+        "text\n\n---\n\n***",
+        "text\n\n---\n\n---\n",
+        true,
+    ),
+    (
+        "<div>\nhtml\n</div>\n\n<!--members-only-->",
+        "<div>\nhtml\n</div>\n\n<!--members-only-->\n",
+        true,
+    ),
+    (
+        "![alt](/a.png \"Title\")\n\n[![linked](/b.png)](https://example.com)",
+        "![alt](/a.png \"Title\")\n\n[![linked](/b.png)](https://example.com)\n",
+        true,
+    ),
+    (
+        "text before ![x](/x.png) text after",
+        "text before\n\n![x](/x.png)\n\ntext after\n",
+        true,
+    ),
+]

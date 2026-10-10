@@ -74,6 +74,17 @@ fn front_matter_aliases_and_scalars() {
 }
 
 #[test]
+fn front_matter_code_injection() {
+    insta::assert_debug_snapshot!(parsed(&[
+        "---\ncodeinjection_head: |\n  <script>\n    run();\n  </script>\ncodeinjection_foot: |-\n  <div id=\"x\"></div>\n---\nBody\n",
+        "---\ncodeinjection_head: '<meta name=\"robots\" content=\"noindex\">'\n---\n",
+        // An empty value is meaningful: it clears the injection on push.
+        "---\ncodeinjection_head: \"\"\ncodeinjection_foot:\n---\n",
+        "---\ncodeinjection_head: [not, a, string]\n---\n",
+    ]));
+}
+
+#[test]
 fn front_matter_dates() {
     let dates = [
         "2024-01-31",

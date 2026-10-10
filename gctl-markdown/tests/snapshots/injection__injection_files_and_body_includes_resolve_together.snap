@@ -1,0 +1,11 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "format!(\"{}\\n=====\\n{}\", to_markdown(&doc.body),\ninjections(&fs, \"content/post.md\"))"
+---
+Before
+
+From the part
+
+=====
+head=Some("<link rel=\"x\">")
+foot=None

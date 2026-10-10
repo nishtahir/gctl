@@ -1,0 +1,30 @@
+---
+source: gctl-markdown/tests/import.rs
+expression: results
+---
+[
+    (
+        "Hello world\n",
+        [],
+    ),
+    (
+        "one\n\ntwo\n",
+        [],
+    ),
+    (
+        "kept\n",
+        [],
+    ),
+    (
+        "a\\\nb\n",
+        [],
+    ),
+    (
+        "a\\\nb\n",
+        [],
+    ),
+    (
+        "**bold**\n",
+        [],
+    ),
+]

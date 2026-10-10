@@ -1,0 +1,6 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "injections(&fs, \"content/posts/post.md\")"
+---
+head=Some("<style>a{}</style>")
+foot=Some("")

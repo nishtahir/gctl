@@ -1,0 +1,14 @@
+---
+source: gctl-markdown/tests/injection.rs
+expression: "(doc.front_matter.head_injection().map_err(|e| e.to_string()),\ndoc.front_matter.foot_injection().map_err(|e| e.to_string()),)"
+---
+(
+    Err(
+        "Include error: codeinjection_head: head.html: file reference was not resolved",
+    ),
+    Ok(
+        Some(
+            "<b>ok</b>",
+        ),
+    ),
+)

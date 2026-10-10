@@ -1,0 +1,10 @@
+---
+source: gctl-markdown/tests/include.rs
+expression: "format!(\"{}\\n=====\\n{}\", to_markdown(&doc.body),\ndoc.to_lexical()[\"root\"][\"children\"][1])"
+---
+Before
+
+{{< include "part.md" lang="rust" >}}
+
+=====
+{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"{{< include \"part.md\" lang=\"rust\" >}}","type":"extended-text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}

@@ -1,0 +1,61 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"5. five\\n6. six\"])"
+---
+[
+  {
+    "markdown": "5. five\n6. six",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "five",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 5,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "six",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 6,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "number",
+        "start": 5,
+        "tag": "ol",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  }
+]

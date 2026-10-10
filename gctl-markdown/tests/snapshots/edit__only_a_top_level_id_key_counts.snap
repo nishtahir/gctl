@@ -1,0 +1,14 @@
+---
+source: gctl-markdown/tests/edit.rs
+assertion_line: 37
+expression: "cases(&[\"---\\nidentity: x\\nidx: 1\\nauthor:\\n  id: nested\\n---\\nBody\\n\",])"
+---
+[
+    (
+        "---\nidentity: x\nidx: 1\nauthor:\n  id: nested\n---\nBody\n",
+        "---\nid: \"6891829ae31775000106141a\"\nidentity: x\nidx: 1\nauthor:\n  id: nested\n---\nBody\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+]

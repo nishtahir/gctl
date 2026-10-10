@@ -1,0 +1,22 @@
+---
+source: gctl-bin/src/publish_handler.rs
+expression: slugs
+---
+[
+    (
+        "content/Hello World.md",
+        "hello-world",
+    ),
+    (
+        "content/posts/my_post.md",
+        "my-post",
+    ),
+    (
+        "content/my-bundle/index.md",
+        "my-bundle",
+    ),
+    (
+        "content/Ünï Cödé -- Post!.md",
+        "n-c-d-post",
+    ),
+]

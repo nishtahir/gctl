@@ -1,0 +1,549 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"```rust\\nfn main() {\", \"```\", \"> \", \">\", \"- \", \"-\\n\", \"1. \",\n\"<div>\", \"---\", \"---\\ntitle: x\", \"#\", \"# \", \"\\t\\n  \\n\",\n\"- a\\n\\n\\n- b\\n\\n  \\n- c\", \"  - indented first\\n  - second\",\n\"text\\n- list interrupts\\n# heading interrupts\\n> quote interrupts\",])"
+---
+[
+    (
+        "```rust\nfn main() {",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    CodeBlock {
+                        language: Some(
+                            "rust",
+                        ),
+                        code: "fn main() {",
+                    },
+                ],
+            },
+        ),
+    ),
+    (
+        "```",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "```",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "> ",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Quote(
+                        [],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        ">",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Quote(
+                        [],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "- ",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    List {
+                        ordered: false,
+                        start: 1,
+                        items: [
+                            ListItem {
+                                content: [],
+                                children: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ),
+    ),
+    (
+        "-\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "-",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "1. ",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    List {
+                        ordered: true,
+                        start: 1,
+                        items: [
+                            ListItem {
+                                content: [],
+                                children: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ),
+    ),
+    (
+        "<div>",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Html(
+                        "<div>",
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "---",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Rule,
+                ],
+            },
+        ),
+    ),
+    (
+        "---\ntitle: x",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Rule,
+                    Paragraph(
+                        [
+                            Text {
+                                text: "title: x",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "#",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "#",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "# ",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "#",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "\t\n  \n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "- a\n\n\n- b\n\n  \n- c",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    List {
+                        ordered: false,
+                        start: 1,
+                        items: [
+                            ListItem {
+                                content: [
+                                    Text {
+                                        text: "a",
+                                        format: 0,
+                                    },
+                                ],
+                                children: [],
+                            },
+                            ListItem {
+                                content: [
+                                    Text {
+                                        text: "b",
+                                        format: 0,
+                                    },
+                                ],
+                                children: [],
+                            },
+                            ListItem {
+                                content: [
+                                    Text {
+                                        text: "c",
+                                        format: 0,
+                                    },
+                                ],
+                                children: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ),
+    ),
+    (
+        "  - indented first\n  - second",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "- indented first - second",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "text\n- list interrupts\n# heading interrupts\n> quote interrupts",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "text",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                    List {
+                        ordered: false,
+                        start: 1,
+                        items: [
+                            ListItem {
+                                content: [
+                                    Text {
+                                        text: "list interrupts",
+                                        format: 0,
+                                    },
+                                ],
+                                children: [],
+                            },
+                        ],
+                    },
+                    Heading {
+                        level: 1,
+                        content: [
+                            Text {
+                                text: "heading interrupts",
+                                format: 0,
+                            },
+                        ],
+                    },
+                    Quote(
+                        [
+                            [
+                                Text {
+                                    text: "quote interrupts",
+                                    format: 0,
+                                },
+                            ],
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+]

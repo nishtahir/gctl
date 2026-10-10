@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 gctl-ghost = { path = "../gctl-ghost" }
-gctl-liquid = { path = "../gctl-liquid" }
+gctl-markdown = { path = "../gctl-markdown" }
 clap = { version = "4.4.11", features = ["derive", "env"] }
 url = "2.5.0"
 thiserror = {workspace = true}
@@ -21,6 +21,7 @@ tokio = { version = "1.0", features = ["full"] }
 bon = { workspace = true }
 serde_yaml = "0.9.34"
 serde = {workspace=true}
+chrono = "0.4"
 dialoguer = "0.11"
 dirs = "5"
 [dev-dependencies]

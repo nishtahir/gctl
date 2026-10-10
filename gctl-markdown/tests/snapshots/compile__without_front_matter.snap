@@ -1,0 +1,38 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"Just text\\n\"])"
+---
+[
+    (
+        "Just text\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "Just text",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+]

@@ -1,0 +1,116 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"1. a\\n2. b\", \"1) a\\n2) b\"])"
+---
+[
+  {
+    "markdown": "1. a\n2. b",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "b",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 2,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "number",
+        "start": 1,
+        "tag": "ol",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "1) a\n2) b",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "b",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 2,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "number",
+        "start": 1,
+        "tag": "ol",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  }
+]

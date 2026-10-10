@@ -1,0 +1,105 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"before ![x](/x.png) after\", \"![a](/a.png)\\n![b](/b.png)\",\n\"![a](/a.png)  \\n\"])"
+---
+[
+  {
+    "markdown": "before ![x](/x.png) after",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "before",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "alt": "x",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/x.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "![a](/a.png)\n![b](/b.png)",
+    "nodes": [
+      {
+        "alt": "a",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/a.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      },
+      {
+        "alt": "b",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/b.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  },
+  {
+    "markdown": "![a](/a.png)  \n",
+    "nodes": [
+      {
+        "alt": "a",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/a.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  }
+]

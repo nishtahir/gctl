@@ -1,0 +1,87 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"# T\\r\\n\\r\\n- a\\r\\n- b\\r\\n\\r\\n```rs\\r\\nx\\r\\n```\\r\\n\"])"
+---
+[
+  {
+    "markdown": "# T\r\n\r\n- a\r\n- b\r\n\r\n```rs\r\nx\r\n```\r\n",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "T",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h1",
+        "type": "extended-heading",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "b",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 2,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      },
+      {
+        "caption": "",
+        "code": "x",
+        "language": "rs",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  }
+]

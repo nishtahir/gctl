@@ -59,6 +59,37 @@ pub enum GctlCommands {
         #[command(subcommand)]
         command: ImageCommands,
     },
+    #[command(
+        visible_alias = "push",
+        about = "Push markdown files (YAML front matter) to Ghost as posts",
+        long_about = "Compiles markdown files with YAML front matter to Lexical and creates or \
+updates the matching Ghost post.\n\n\
+The first push writes the post's Ghost `id` back into the file's front matter; \
+later pushes update that post, even if the slug or file name changes. A file \
+without an id is matched by slug. The slug defaults to the file name (or the \
+directory name for `index.md`). Files whose name starts with `_` or `.` are \
+skipped.\n\n\
+Status comes from the front matter (`status: draft|published|scheduled`, or \
+`draft: true|false`). Without either, a new post is a draft and an existing \
+post keeps its status.\n\n\
+Recognised front matter: title, slug, id, status, draft, date, tags, \
+categories, description, image, featured, visibility, canonical."
+    )]
+    Publish(PublishArgs),
+}
+
+#[derive(Args)]
+pub struct PublishArgs {
+    #[arg(
+        default_value = "content",
+        help = "Markdown file or directory of markdown files"
+    )]
+    pub path: String,
+    #[arg(
+        long,
+        help = "Show what would be created or updated without changing anything"
+    )]
+    pub dry_run: bool,
 }
 
 #[derive(Subcommand)]

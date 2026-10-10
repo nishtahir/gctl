@@ -1,0 +1,54 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"<div class=\\\"note\\\">\\n  <p>hi</p>\\n</div>\",\n\"<table>\\n<tr></tr>\\n</table>\\n\\nafter\", \"<!-- note -->\"])"
+---
+[
+  {
+    "markdown": "<div class=\"note\">\n  <p>hi</p>\n</div>",
+    "nodes": [
+      {
+        "html": "<div class=\"note\">\n  <p>hi</p>\n</div>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<table>\n<tr></tr>\n</table>\n\nafter",
+    "nodes": [
+      {
+        "html": "<table>\n<tr></tr>\n</table>",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "<!-- note -->",
+    "nodes": [
+      {
+        "html": "<!-- note -->",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,20 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 120
+expression: post
+---
+{
+  "id": "foo",
+  "title": "Hello World",
+  "slug": "hello-world",
+  "published_at": "2024-01-31T00:00:00.000Z",
+  "custom_excerpt": "Short",
+  "tags": [
+    {
+      "name": "a"
+    },
+    {
+      "name": "b"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"\", \"\\n\\n  \\n\", \"---\\ntitle: only front matter\\n---\\n\"])"
+---
+[
+  {
+    "markdown": "",
+    "nodes": []
+  },
+  {
+    "markdown": "\n\n  \n",
+    "nodes": []
+  },
+  {
+    "markdown": "---\ntitle: only front matter\n---\n",
+    "nodes": []
+  }
+]

@@ -1,0 +1,16 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"<div>\\n*not italic*\\n</div>\"])"
+---
+[
+  {
+    "markdown": "<div>\n*not italic*\n</div>",
+    "nodes": [
+      {
+        "html": "<div>\n*not italic*\n</div>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  }
+]

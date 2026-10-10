@@ -9,6 +9,10 @@ pub enum GctlCliError {
     GhostError(#[from] GhostError),
     #[error("Configuration error: {0}")]
     ConfigError(String),
+    #[error("Markdown error: {0}")]
+    MarkdownError(#[from] gctl_markdown::MarkdownError),
+    #[error("{0}")]
+    PublishError(String),
     #[error("Parse error: {0}")]
     ParseError(String),
 }

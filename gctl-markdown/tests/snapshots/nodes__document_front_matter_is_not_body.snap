@@ -1,0 +1,29 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"---\\ntitle: T\\ntags: [a]\\n---\\n\\nBody\"])"
+---
+[
+  {
+    "markdown": "---\ntitle: T\ntags: [a]\n---\n\nBody",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Body",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

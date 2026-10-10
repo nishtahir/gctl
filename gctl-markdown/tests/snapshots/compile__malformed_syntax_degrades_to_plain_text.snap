@@ -1,0 +1,494 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"2 * 3 * 4\", \"unclosed **bold\", \"unclosed *emph\",\n\"a lone ` backtick\", \"[not a link] (nope)\", \"[unclosed](http://x\",\n\"![unclosed\", \"~~ spaced ~~\", \"trailing backslash\\\\\",\n\"snake_case and __init__ and a_b_c\", \"100% sure! really?\",\n\"#hashtag is not a heading\", \"-no space is not a list\", \"1.5 is not a list\",\n\"<b>inline html</b> stays a paragraph\",])"
+---
+[
+    (
+        "2 * 3 * 4",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "2 * 3 * 4",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "unclosed **bold",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "unclosed **bold",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "unclosed *emph",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "unclosed *emph",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "a lone ` backtick",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "a lone ` backtick",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "[not a link] (nope)",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "[not a link] (nope)",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "[unclosed](http://x",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "[unclosed](http://x",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "![unclosed",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "![unclosed",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "~~ spaced ~~",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "~~ spaced ~~",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "trailing backslash\\",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "trailing backslash\\",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "snake_case and __init__ and a_b_c",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "snake_case and ",
+                                format: 0,
+                            },
+                            Text {
+                                text: "init",
+                                format: 1,
+                            },
+                            Text {
+                                text: " and a_b_c",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "100% sure! really?",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "100% sure! really?",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "#hashtag is not a heading",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "#hashtag is not a heading",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "-no space is not a list",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "-no space is not a list",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "1.5 is not a list",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "1.5 is not a list",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "<b>inline html</b> stays a paragraph",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "<b>inline html</b> stays a paragraph",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+]

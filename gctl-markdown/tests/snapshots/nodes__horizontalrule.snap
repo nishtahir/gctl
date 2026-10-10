@@ -1,0 +1,105 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"---\", \"***\", \"___\", \"-----\", \"*****\", \"---  \", \"a\\n\\n---\\n\\nb\"])"
+---
+[
+  {
+    "markdown": "---",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "***",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "___",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "-----",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "*****",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "---  ",
+    "nodes": [
+      {
+        "type": "horizontalrule",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "a\n\n---\n\nb",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "a",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "type": "horizontalrule",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "b",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

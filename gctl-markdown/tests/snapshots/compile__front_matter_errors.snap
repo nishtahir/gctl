@@ -1,0 +1,12 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "[\"---\\ntitle: [unclosed\\n---\\n\",\n\"---\\ndraft: maybe\\n---\\n\"].iter().map(|input|\nparse(input).map(|_| ()).map_err(|e| e.to_string())).collect::<Vec<_>>()"
+---
+[
+    Err(
+        "Invalid front matter: title: invalid type: sequence, expected a string at line 1 column 8",
+    ),
+    Err(
+        "Invalid front matter: draft: invalid type: string \"maybe\", expected a boolean at line 1 column 8",
+    ),
+]

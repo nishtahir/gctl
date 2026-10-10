@@ -1,0 +1,9 @@
+---
+source: gctl-bin/src/publish_handler.rs
+expression: found
+---
+[
+    "a.markdown",
+    "b.md",
+    "nested/c.md",
+]

@@ -1,0 +1,35 @@
+---
+source: gctl-markdown/tests/edit.rs
+assertion_line: 44
+expression: "cases(&[\"Just a body\\n\", \"\",\n\"---\\nlooks like front matter but never closes\\n\",\n\"Text\\n\\n---\\n\\nmore text\\n\",])"
+---
+[
+    (
+        "Just a body\n",
+        "---\nid: \"6891829ae31775000106141a\"\n---\n\nJust a body\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+    (
+        "",
+        "---\nid: \"6891829ae31775000106141a\"\n---\n\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+    (
+        "---\nlooks like front matter but never closes\n",
+        "---\nid: \"6891829ae31775000106141a\"\n---\n\n---\nlooks like front matter but never closes\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+    (
+        "Text\n\n---\n\nmore text\n",
+        "---\nid: \"6891829ae31775000106141a\"\n---\n\nText\n\n---\n\nmore text\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+]

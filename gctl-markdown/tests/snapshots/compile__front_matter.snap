@@ -1,0 +1,46 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "(&fm, fm.all_tags(), fm.published_at())"
+---
+(
+    FrontMatter {
+        id: None,
+        title: Some(
+            "Hello, World",
+        ),
+        slug: Some(
+            "hello-world",
+        ),
+        date: Some(
+            "2024-01-31",
+        ),
+        status: None,
+        draft: Some(
+            false,
+        ),
+        tags: [
+            "rust",
+            "wasm",
+        ],
+        categories: [
+            "Programming",
+        ],
+        description: Some(
+            "A short summary",
+        ),
+        feature_image: None,
+        featured: None,
+        visibility: None,
+        canonical_url: None,
+    },
+    [
+        "rust",
+        "wasm",
+        "Programming",
+    ],
+    Ok(
+        Some(
+            2024-01-31T00:00:00Z,
+        ),
+    ),
+)

@@ -1,0 +1,316 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"- a\\n  - b\\n  - c\\n- d\", \"1. a\\n   - b\", \"- a\\n  - b\\n    - c\"])"
+---
+[
+  {
+    "markdown": "- a\n  - b\n  - c\n- d",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "detail": 0,
+                        "format": 0,
+                        "mode": "normal",
+                        "style": "",
+                        "text": "b",
+                        "type": "extended-text",
+                        "version": 1
+                      }
+                    ],
+                    "direction": "ltr",
+                    "format": "",
+                    "indent": 1,
+                    "type": "listitem",
+                    "value": 1,
+                    "version": 1
+                  },
+                  {
+                    "children": [
+                      {
+                        "detail": 0,
+                        "format": 0,
+                        "mode": "normal",
+                        "style": "",
+                        "text": "c",
+                        "type": "extended-text",
+                        "version": 1
+                      }
+                    ],
+                    "direction": "ltr",
+                    "format": "",
+                    "indent": 1,
+                    "type": "listitem",
+                    "value": 2,
+                    "version": 1
+                  }
+                ],
+                "direction": "ltr",
+                "format": "",
+                "indent": 0,
+                "listType": "bullet",
+                "start": 1,
+                "tag": "ul",
+                "type": "list",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "d",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 2,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "1. a\n   - b",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "detail": 0,
+                        "format": 0,
+                        "mode": "normal",
+                        "style": "",
+                        "text": "b",
+                        "type": "extended-text",
+                        "version": 1
+                      }
+                    ],
+                    "direction": "ltr",
+                    "format": "",
+                    "indent": 1,
+                    "type": "listitem",
+                    "value": 1,
+                    "version": 1
+                  }
+                ],
+                "direction": "ltr",
+                "format": "",
+                "indent": 0,
+                "listType": "bullet",
+                "start": 1,
+                "tag": "ul",
+                "type": "list",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "number",
+        "start": 1,
+        "tag": "ol",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "- a\n  - b\n    - c",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "detail": 0,
+                        "format": 0,
+                        "mode": "normal",
+                        "style": "",
+                        "text": "b",
+                        "type": "extended-text",
+                        "version": 1
+                      }
+                    ],
+                    "direction": "ltr",
+                    "format": "",
+                    "indent": 1,
+                    "type": "listitem",
+                    "value": 1,
+                    "version": 1
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "detail": 0,
+                                "format": 0,
+                                "mode": "normal",
+                                "style": "",
+                                "text": "c",
+                                "type": "extended-text",
+                                "version": 1
+                              }
+                            ],
+                            "direction": "ltr",
+                            "format": "",
+                            "indent": 2,
+                            "type": "listitem",
+                            "value": 1,
+                            "version": 1
+                          }
+                        ],
+                        "direction": "ltr",
+                        "format": "",
+                        "indent": 0,
+                        "listType": "bullet",
+                        "start": 1,
+                        "tag": "ul",
+                        "type": "list",
+                        "version": 1
+                      }
+                    ],
+                    "direction": "ltr",
+                    "format": "",
+                    "indent": 1,
+                    "type": "listitem",
+                    "value": 1,
+                    "version": 1
+                  }
+                ],
+                "direction": "ltr",
+                "format": "",
+                "indent": 0,
+                "listType": "bullet",
+                "start": 1,
+                "tag": "ul",
+                "type": "list",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  }
+]

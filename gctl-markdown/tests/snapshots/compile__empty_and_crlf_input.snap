@@ -1,0 +1,111 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"\", \"---\\n---\\n\", \"---\\r\\ntitle: x\\r\\n---\\r\\n\\r\\nhi\\r\\n\",\n\"\\u{feff}---\\ntitle: bom\\n---\\n\",])"
+---
+[
+    (
+        "",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\r\ntitle: x\r\n---\r\n\r\nhi\r\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: Some(
+                        "x",
+                    ),
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [
+                    Paragraph(
+                        [
+                            Text {
+                                text: "hi",
+                                format: 0,
+                            },
+                        ],
+                    ),
+                ],
+            },
+        ),
+    ),
+    (
+        "\u{feff}---\ntitle: bom\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: Some(
+                        "bom",
+                    ),
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+]

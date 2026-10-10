@@ -1,0 +1,54 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"```rust\\nfn main() {}\\n```\", \"```\\nplain\\n```\", \"```rust ignore\\nx\\n```\",\n\"```\\n```\"])"
+---
+[
+  {
+    "markdown": "```rust\nfn main() {}\n```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "fn main() {}",
+        "language": "rust",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "```\nplain\n```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "plain",
+        "language": "",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "```rust ignore\nx\n```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "x",
+        "language": "rust",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "```\n```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "",
+        "language": "",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  }
+]

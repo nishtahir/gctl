@@ -1,0 +1,60 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"intro\\n- a\"])"
+---
+[
+  {
+    "markdown": "intro\n- a",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "intro",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  }
+]

@@ -100,6 +100,65 @@ cargo test
   - `src/error.rs`: Error types
   - `src/options.rs`: Configuration options
 
+## Publishing markdown
+
+`gctl push` (alias of `gctl publish`) works like a static site generator's
+content directory: write posts as markdown files with YAML front matter, then
+push them to update Ghost.
+
+```
+content/
+  hello-world.md
+  my-series/
+    part-one.md
+    index.md          # slug comes from the directory name
+```
+
+```markdown
+---
+title: "Hello, World"
+slug: hello-world        # optional, defaults to the file name
+status: published        # draft | published | scheduled; or `draft: false`
+date: 2024-01-31         # optional; a future date schedules the post
+tags: [rust, wasm]
+description: A short summary
+image: https://example.com/cover.png
+---
+
+Body in markdown...
+```
+
+```bash
+gctl push                    # pushes ./content
+gctl push posts/hello.md     # a single file
+gctl push --dry-run          # show what would be created/updated, change nothing
+```
+
+**Status.** It comes from the front matter: `status:` if present, otherwise
+`draft: true|false`. With neither, a *new* post is created as a Ghost draft, so
+nothing goes live by accident, and an *existing* post keeps whatever status it
+has. Drafts are pushed too, which means setting a published post's front matter
+back to `draft: true` unpublishes it.
+
+**Identity.** The first push writes the post's Ghost `id` into the file's
+front matter (nothing else in the file changes). Later pushes update that post
+by id, so you can freely rename the file or change `slug:` without creating a
+duplicate. A file without an id is matched by slug, and adopts the post it
+finds. Commit the id along with the file.
+
+**Source of truth.** The files win: a push overwrites the post's title, slug,
+content, tags and other front-matter fields in Ghost, including edits made in
+the Ghost editor. Removing a file does not delete its post.
+
+The markdown is parsed with a [pest](https://pest.rs) grammar and compiled to
+Ghost's Lexical format (headings, paragraphs, bold/italic/strikethrough/code,
+links, images, nested lists, quotes, code blocks, rules and raw HTML blocks).
+Files that start with `_` or `.` are skipped.
+
+Not supported yet: tables, footnotes, task lists, setext headings, shortcodes,
+and uploading local images (use absolute image URLs for now). Tables are best
+written as an HTML block.
+
 ## License
 
 Licensed under the Apache License, Version 2.0 (the "License");

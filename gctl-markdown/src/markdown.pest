@@ -1,0 +1,92 @@
+// Grammar for a Hugo-style content file: optional YAML front matter followed
+// by a CommonMark-flavoured body. Blocks are parsed here; inline syntax is
+// parsed from the text of each block using the `inlines` rule below.
+//
+// There is deliberately no implicit WHITESPACE rule: line structure matters.
+
+sp       = _{ " " | "\t" }
+line_end = _{ "\n" | EOI }
+blank    = _{ sp* ~ "\n" | sp+ ~ EOI }
+
+// ---------------------------------------------------------------- document
+
+document    = { SOI ~ frontmatter? ~ body ~ EOI }
+blocks_only = { SOI ~ body ~ EOI }
+
+frontmatter = { "---" ~ sp* ~ "\n" ~ fm_text ~ fm_close }
+fm_text     = @{ (!fm_close ~ fm_line)* }
+fm_line     = _{ (!"\n" ~ ANY)* ~ "\n" }
+fm_close    = _{ "---" ~ sp* ~ line_end }
+
+body  = { (blank | block)* }
+block = _{ heading | fenced_code | hr | blockquote | ulist | olist | html_block | paragraph }
+
+// ----------------------------------------------------------------- blocks
+
+heading  = { h_marker ~ sp+ ~ h_text ~ line_end }
+h_marker = @{ "#"{1, 6} }
+h_text   = @{ (!"\n" ~ ANY)+ }
+
+fenced_code = { "```" ~ sp* ~ info ~ "\n" ~ code_body ~ (fence_close | EOI) }
+info        = @{ (!"\n" ~ !"`" ~ ANY)* }
+fence_close = _{ "```" ~ sp* ~ line_end }
+code_body   = @{ (!fence_close ~ code_line)* }
+code_line   = _{ (!"\n" ~ ANY)+ ~ line_end | "\n" }
+
+hr = { ("---" ~ "-"* | "***" ~ "*"* | "___" ~ "_"*) ~ sp* ~ line_end }
+
+blockquote = { quote_line+ }
+quote_line = { ">" ~ " "? ~ quote_text ~ line_end }
+quote_text = @{ (!"\n" ~ ANY)* }
+
+ulist     = { ul_item ~ (blank* ~ ul_item)* }
+olist     = { ol_item ~ (blank* ~ ol_item)* }
+ul_item   = { ul_marker ~ " " ~ item_text ~ line_end ~ item_cont* }
+ol_item   = { ol_marker ~ " " ~ item_text ~ line_end ~ item_cont* }
+ul_marker = @{ "-" | "*" | "+" }
+ol_marker = @{ ASCII_DIGIT{1, 9} ~ ("." | ")") }
+item_text = @{ (!"\n" ~ ANY)* }
+item_cont = @{ (" "{2,} | "\t") ~ (!"\n" ~ ANY)+ ~ line_end }
+
+// Raw HTML on its own lines, up to the next blank line. Inline-level tags
+// (<a>, <b>, ...) at the start of a line stay part of the paragraph.
+html_block = @{ &html_start ~ html_line+ }
+html_start = _{ "<" ~ !("/"? ~ inline_tag) ~ (ASCII_ALPHA | "/" | "!") }
+inline_tag = _{ ("a" | "b" | "i" | "em" | "strong" | "code" | "span" | "kbd" | "sub" | "sup" | "br" | "small" | "mark" | "abbr") ~ !ASCII_ALPHANUMERIC }
+html_line  = _{ !(sp* ~ line_end) ~ (!"\n" ~ ANY)+ ~ line_end }
+
+paragraph  = { para_first ~ para_more* }
+para_first = @{ (!"\n" ~ ANY)+ ~ line_end }
+para_more  = @{ !(sp* ~ line_end) ~ !para_break ~ (!"\n" ~ ANY)+ ~ line_end }
+para_break = _{ (h_marker ~ " ") | "```" | hr | ">" | ((("-" | "*" | "+") | (ASCII_DIGIT+ ~ ("." | ")"))) ~ " ") }
+
+// ----------------------------------------------------------------- inlines
+
+inlines = { SOI ~ inline* ~ EOI }
+inline  = _{ code_span | image | link | strong | strike | emph | hard_break | soft_break | escaped | text }
+
+code_span    = ${ "`" ~ code_content ~ "`" }
+code_content = @{ (!("`" | "\n") ~ ANY)+ }
+
+alt   = @{ (!"]" ~ ANY)* }
+url   = @{ (!(")" | " " | "\n") ~ ANY)+ }
+title = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+image = ${ "![" ~ alt ~ "](" ~ url ~ (" " ~ title)? ~ ")" }
+link  = ${ "[" ~ (!"]" ~ link_inline)+ ~ "](" ~ url ~ (" " ~ title)? ~ ")" }
+link_inline = _{ code_span | image | strong | strike | emph | hard_break | soft_break | escaped | text }
+
+strong = ${ "**" ~ !sp ~ (!"**" ~ !(sp ~ "**") ~ inline)+ ~ "**"
+          | "__" ~ !sp ~ (!"__" ~ !(sp ~ "__") ~ inline)+ ~ "__" }
+emph   = ${ "*" ~ !sp ~ (!"*" ~ !(sp ~ "*") ~ inline)+ ~ "*"
+          | "_" ~ !sp ~ (!"_" ~ !(sp ~ "_") ~ inline)+ ~ "_" }
+strike = ${ "~~" ~ !sp ~ (!"~~" ~ !(sp ~ "~~") ~ inline)+ ~ "~~" }
+
+hard_break = ${ (" "{2,} | "\\") ~ "\n" }
+soft_break = ${ "\n" }
+escaped    = ${ "\\" ~ escaped_char }
+escaped_char = @{ '!'..'/' | ':'..'@' | '['..'`' | '{'..'~' }
+
+special = _{ "*" | "_" | "`" | "[" | "]" | "!" | "~" | "\\" | "\n" }
+word    = @{ ASCII_ALPHANUMERIC+ ~ ("_" ~ ASCII_ALPHANUMERIC+)* }
+text    = @{ word | (!(special | ASCII_ALPHANUMERIC | (" "{2,} ~ "\n")) ~ ANY)+ | ANY }

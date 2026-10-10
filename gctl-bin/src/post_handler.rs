@@ -7,7 +7,7 @@ use tracing::{debug, info};
 use crate::{
     cli::{PostAddArgs, PostCommands, PostDeleteArgs, PostGetArgs, PostListArgs, PostUpdateArgs},
     error::GctlCliError,
-    markdown::parse_jekyll_formated_markdown,
+    markdown::compile_markdown,
     output::{format_post, format_posts, OutputFormat},
 };
 use bon::Builder;
@@ -20,6 +20,7 @@ impl From<PostListArgs> for PostFilter {
             author: args.author,
             featured: args.featured,
             visibility: args.visibility,
+            slug: None,
             raw: args.filter,
             limit: (!args.all).then_some(args.limit),
         }
@@ -84,7 +85,7 @@ impl<'a> PostCommandHandler<'a> {
                     let content = fs::read_to_string(markdown)?;
                     // TODO: These should be merged into the default to allow
                     // cascading overwritting.
-                    post_data = parse_jekyll_formated_markdown(&content)?;
+                    post_data = compile_markdown(&content)?.post;
                 }
 
                 if let Some(id) = id {

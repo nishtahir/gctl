@@ -1,0 +1,26 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: "[status(\"title: a\"), status(\"draft: true\"), status(\"date: 2024-01-01\"),\nstatus(\"date: 2025-01-01\"), status(\"draft: true\\ndate: 2025-01-01\"),]"
+---
+[
+    (
+        "title: a",
+        "published",
+    ),
+    (
+        "draft: true",
+        "draft",
+    ),
+    (
+        "date: 2024-01-01",
+        "published",
+    ),
+    (
+        "date: 2025-01-01",
+        "scheduled",
+    ),
+    (
+        "draft: true\ndate: 2025-01-01",
+        "draft",
+    ),
+]

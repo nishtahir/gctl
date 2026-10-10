@@ -1,0 +1,139 @@
+---
+source: gctl-markdown/tests/compile.rs
+expression: "parsed(&[\"---\\ntags: single\\n---\\n\",\n\"---\\npublishDate: 2024-01-31T10:30:00Z\\nsummary: s\\nimage: /i.png\\ncanonical: https://x\\n---\\n\",\n\"---\\ncategories: [a, b]\\ntags: [b, c]\\n---\\n\",\n\"---\\nunknown_key: ignored\\ntitle: t\\n---\\n\", \"---\\n---\\n\",])"
+---
+[
+    (
+        "---\ntags: single\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [
+                        "single",
+                    ],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\npublishDate: 2024-01-31T10:30:00Z\nsummary: s\nimage: /i.png\ncanonical: https://x\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: Some(
+                        "2024-01-31T10:30:00Z",
+                    ),
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: Some(
+                        "s",
+                    ),
+                    feature_image: Some(
+                        "/i.png",
+                    ),
+                    featured: None,
+                    visibility: None,
+                    canonical_url: Some(
+                        "https://x",
+                    ),
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\ncategories: [a, b]\ntags: [b, c]\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [
+                        "b",
+                        "c",
+                    ],
+                    categories: [
+                        "a",
+                        "b",
+                    ],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\nunknown_key: ignored\ntitle: t\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: Some(
+                        "t",
+                    ),
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+    (
+        "---\n---\n",
+        Ok(
+            Document {
+                front_matter: FrontMatter {
+                    id: None,
+                    title: None,
+                    slug: None,
+                    date: None,
+                    status: None,
+                    draft: None,
+                    tags: [],
+                    categories: [],
+                    description: None,
+                    feature_image: None,
+                    featured: None,
+                    visibility: None,
+                    canonical_url: None,
+                },
+                body: [],
+            },
+        ),
+    ),
+]

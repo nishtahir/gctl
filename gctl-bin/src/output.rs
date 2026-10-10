@@ -169,6 +169,31 @@ fn render_post(post: Post, width: Option<usize>) -> Table {
     }
 }
 
+#[derive(Tabled, serde::Serialize)]
+pub struct PublishRow {
+    #[tabled(rename = "File")]
+    pub file: String,
+    #[tabled(rename = "Result")]
+    pub result: String,
+    #[tabled(rename = "Status")]
+    pub status: String,
+    #[tabled(rename = "Detail")]
+    pub detail: String,
+}
+
+pub fn format_publish_results(rows: Vec<PublishRow>, format: OutputFormat) {
+    match format {
+        OutputFormat::Table => {
+            let mut table = Table::new(rows);
+            fit(&mut table, terminal_width());
+            println!("{}", table);
+        }
+        OutputFormat::Json => {
+            println!("{}", serde_json::to_string_pretty(&rows).unwrap());
+        }
+    }
+}
+
 pub fn format_images(images: Vec<ImageData>, format: OutputFormat) {
     match format {
         OutputFormat::Table => {

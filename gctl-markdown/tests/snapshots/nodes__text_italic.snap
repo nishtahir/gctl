@@ -1,0 +1,52 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"*it*\", \"_it_\"])"
+---
+[
+  {
+    "markdown": "*it*",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 2,
+            "mode": "normal",
+            "style": "",
+            "text": "it",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "_it_",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 2,
+            "mode": "normal",
+            "style": "",
+            "text": "it",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

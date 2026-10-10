@@ -4,6 +4,7 @@ use crate::config::StoredConfig;
 use crate::error::GctlCliError;
 use crate::image_handler::ImageCommandHandler;
 use crate::post_handler::PostCommandHandler;
+use crate::publish_handler::PublishCommandHandler;
 use clap::Parser;
 use console::style;
 use gctl_ghost::{GhostAdminToken, GhostContentApi, GhostVersion};
@@ -22,6 +23,7 @@ mod log;
 mod markdown;
 mod output;
 mod post_handler;
+mod publish_handler;
 
 fn missing_login() -> GctlCliError {
     GctlCliError::ConfigError(
@@ -65,6 +67,14 @@ async fn run() -> Result<(), GctlCliError> {
                 .format(output_format)
                 .build()
                 .handle_command(command)
+                .await?;
+        }
+        GctlCommands::Publish(args) => {
+            PublishCommandHandler::builder()
+                .api(&api)
+                .format(output_format)
+                .build()
+                .handle_command(args)
                 .await?;
         }
         GctlCommands::Image { command } => {

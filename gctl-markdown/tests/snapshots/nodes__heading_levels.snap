@@ -1,0 +1,150 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"# Title\", \"## Title\", \"### Title\", \"#### Title\", \"##### Title\",\n\"###### Title\"])"
+---
+[
+  {
+    "markdown": "# Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h1",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "## Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h2",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "### Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h3",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "#### Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h4",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "##### Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h5",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "###### Title",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Title",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h6",
+        "type": "extended-heading",
+        "version": 1
+      }
+    ]
+  }
+]

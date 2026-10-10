@@ -1,0 +1,61 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"- one\\n  still one\\n- two\"])"
+---
+[
+  {
+    "markdown": "- one\n  still one\n- two",
+    "nodes": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "one still one",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          },
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "two",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 2,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      }
+    ]
+  }
+]

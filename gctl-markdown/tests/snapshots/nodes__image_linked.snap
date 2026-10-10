@@ -1,0 +1,23 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"[![A cat](/cat.png)](https://example.com)\"])"
+---
+[
+  {
+    "markdown": "[![A cat](/cat.png)](https://example.com)",
+    "nodes": [
+      {
+        "alt": "A cat",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "https://example.com",
+        "src": "/cat.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  }
+]

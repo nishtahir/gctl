@@ -1,0 +1,9 @@
+---
+source: gctl-bin/src/publish_handler.rs
+assertion_line: 311
+expression: "(first, second)"
+---
+(
+    "---\nid: \"abc123\"\ntitle: Hello\n---\n\nBody with `---` and id: x\n",
+    "---\nid: \"def456\"\ntitle: Hello\n---\n\nBody with `---` and id: x\n",
+)

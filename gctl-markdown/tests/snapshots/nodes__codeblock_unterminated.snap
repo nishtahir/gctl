@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"```sh\\necho hi\"])"
+---
+[
+  {
+    "markdown": "```sh\necho hi",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "echo hi",
+        "language": "sh",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,28 @@
+---
+source: gctl-markdown/tests/edit.rs
+assertion_line: 19
+expression: "cases(&[\"---\\ntitle: Hello\\n---\\n\\nBody\\n\",\n\"---\\n# keep me\\ntitle: Hello\\ntags: [a, b]\\n---\\nBody\\n\",\n\"---\\n---\\nBody\\n\",])"
+---
+[
+    (
+        "---\ntitle: Hello\n---\n\nBody\n",
+        "---\nid: \"6891829ae31775000106141a\"\ntitle: Hello\n---\n\nBody\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+    (
+        "---\n# keep me\ntitle: Hello\ntags: [a, b]\n---\nBody\n",
+        "---\nid: \"6891829ae31775000106141a\"\n# keep me\ntitle: Hello\ntags: [a, b]\n---\nBody\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+    (
+        "---\n---\nBody\n",
+        "---\nid: \"6891829ae31775000106141a\"\n---\nBody\n",
+        Some(
+            "6891829ae31775000106141a",
+        ),
+    ),
+]

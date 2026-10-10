@@ -1,0 +1,54 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"text\\n```\\ncode\\n```\\nafter\"])"
+---
+[
+  {
+    "markdown": "text\n```\ncode\n```\nafter",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "text",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "caption": "",
+        "code": "code",
+        "language": "",
+        "type": "codeblock",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

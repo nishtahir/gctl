@@ -1,0 +1,57 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"![A cat](https://example.com/cat.png)\", r#\"![A cat](/cat.png \"Fluffy\")\"#,\n\"![](/x.png)\"])"
+---
+[
+  {
+    "markdown": "![A cat](https://example.com/cat.png)",
+    "nodes": [
+      {
+        "alt": "A cat",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "https://example.com/cat.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  },
+  {
+    "markdown": "![A cat](/cat.png \"Fluffy\")",
+    "nodes": [
+      {
+        "alt": "A cat",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/cat.png",
+        "title": "Fluffy",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  },
+  {
+    "markdown": "![](/x.png)",
+    "nodes": [
+      {
+        "alt": "",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/x.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      }
+    ]
+  }
+]

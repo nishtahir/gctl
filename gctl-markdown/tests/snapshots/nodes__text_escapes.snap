@@ -1,0 +1,29 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [r\"\\*literal\\* \\_x\\_ \\# \\[a\\]\"])"
+---
+[
+  {
+    "markdown": "\\*literal\\* \\_x\\_ \\# \\[a\\]",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "*literal* _x_ # [a]",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

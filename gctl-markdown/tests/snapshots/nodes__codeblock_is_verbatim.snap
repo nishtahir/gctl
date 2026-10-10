@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"```md\\n# not a heading\\n\\n  - not a list\\n*not italic*\\n```\"])"
+---
+[
+  {
+    "markdown": "```md\n# not a heading\n\n  - not a list\n*not italic*\n```",
+    "nodes": [
+      {
+        "caption": "",
+        "code": "# not a heading\n\n  - not a list\n*not italic*",
+        "language": "md",
+        "type": "codeblock",
+        "version": 1
+      }
+    ]
+  }
+]

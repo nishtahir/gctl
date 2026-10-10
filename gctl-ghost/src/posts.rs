@@ -49,6 +49,7 @@ pub struct PostFilter {
     pub author: Option<String>,
     pub featured: Option<bool>,
     pub visibility: Option<String>,
+    pub slug: Option<String>,
     /// Raw Ghost NQL, ANDed with the other criteria.
     pub raw: Option<String>,
     /// Maximum number of posts to return.
@@ -74,6 +75,9 @@ impl PostFilter {
         }
         if let Some(visibility) = &self.visibility {
             parts.push(format!("visibility:{}", quote(visibility)));
+        }
+        if let Some(slug) = &self.slug {
+            parts.push(format!("slug:{}", quote(slug)));
         }
         if let Some(raw) = &self.raw {
             parts.push(format!("({raw})"));
@@ -219,8 +223,14 @@ impl<'a> GhostPostsApi<'a> {
         let existing_post = &serde_json::to_value(existing_post)?;
         let mut existing_post = PostDataBuilder::from_existing(existing_post);
 
-        let updated_post = existing_post.merge_with(&serde_json::to_value(partial)?);
-        let updated_post = updated_post.build();
+        existing_post.merge_with(&serde_json::to_value(partial)?);
+        if partial.lexical.is_some() {
+            // New lexical content supersedes whatever the post was stored as
+            // before; sending the old renderings back would conflict with it.
+            existing_post.data.remove("mobiledoc");
+            existing_post.data.remove("html");
+        }
+        let updated_post = existing_post.build();
 
         let response = self
             .make_request("PUT", &format!("posts/{}", post_id), Some(&updated_post))
@@ -271,12 +281,13 @@ mod test {
             author: Some("o'neil".into()),
             featured: Some(true),
             visibility: Some("public".into()),
+            slug: Some("hello".into()),
             raw: Some("title:~'wasm',slug:foo".into()),
             limit: None,
         };
         assert_eq!(
             filter.to_nql(),
-            "status:'published'+tag:'rust'+author:'o\\'neil'+featured:true+visibility:'public'+(title:~'wasm',slug:foo)"
+            "status:'published'+tag:'rust'+author:'o\\'neil'+featured:true+visibility:'public'+slug:'hello'+(title:~'wasm',slug:foo)"
         );
     }
 }

@@ -1,0 +1,29 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"Hello, world! (really)\"])"
+---
+[
+  {
+    "markdown": "Hello, world! (really)",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "Hello, world! (really)",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

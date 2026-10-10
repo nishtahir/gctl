@@ -1,0 +1,12 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: errors
+---
+[
+    Some(
+        "Markdown error: Invalid date 'nope': expected e.g. 2024-01-31 or 2024-01-31T10:00:00Z",
+    ),
+    Some(
+        "Markdown error: Invalid front matter: did not find expected key, while parsing a block mapping",
+    ),
+]

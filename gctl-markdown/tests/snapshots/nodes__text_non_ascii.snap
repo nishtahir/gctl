@@ -1,0 +1,47 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(& [\"naïve **café** 日本語 🎉\"])"
+---
+[
+  {
+    "markdown": "naïve **café** 日本語 🎉",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "naïve ",
+            "type": "extended-text",
+            "version": 1
+          },
+          {
+            "detail": 0,
+            "format": 1,
+            "mode": "normal",
+            "style": "",
+            "text": "café",
+            "type": "extended-text",
+            "version": 1
+          },
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": " 日本語 🎉",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

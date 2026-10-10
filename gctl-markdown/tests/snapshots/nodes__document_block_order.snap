@@ -1,0 +1,125 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"# T\\n\\npara\\n\\n- a\\n\\n> q\\n\\n```\\nc\\n```\\n\\n---\\n\\n![i](/i.png)\\n\\n<hr>\\n\"])"
+---
+[
+  {
+    "markdown": "# T\n\npara\n\n- a\n\n> q\n\n```\nc\n```\n\n---\n\n![i](/i.png)\n\n<hr>\n",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "T",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "tag": "h1",
+        "type": "extended-heading",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "para",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "detail": 0,
+                "format": 0,
+                "mode": "normal",
+                "style": "",
+                "text": "a",
+                "type": "extended-text",
+                "version": 1
+              }
+            ],
+            "direction": "ltr",
+            "format": "",
+            "indent": 0,
+            "type": "listitem",
+            "value": 1,
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "listType": "bullet",
+        "start": 1,
+        "tag": "ul",
+        "type": "list",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "q",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "extended-quote",
+        "version": 1
+      },
+      {
+        "caption": "",
+        "code": "c",
+        "language": "",
+        "type": "codeblock",
+        "version": 1
+      },
+      {
+        "type": "horizontalrule",
+        "version": 1
+      },
+      {
+        "alt": "i",
+        "caption": "",
+        "cardWidth": "regular",
+        "height": null,
+        "href": "",
+        "src": "/i.png",
+        "title": "",
+        "type": "image",
+        "version": 1,
+        "width": null
+      },
+      {
+        "html": "<hr>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  }
+]

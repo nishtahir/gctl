@@ -1,0 +1,121 @@
+---
+source: gctl-bin/src/markdown.rs
+assertion_line: 132
+expression: "[status(\"title: a\"), status(\"draft: true\"), status(\"draft: false\"),\nstatus(\"status: draft\"), status(\"status: published\"),\nstatus(\"draft: false\\ndate: 2024-01-01\"),\nstatus(\"draft: false\\ndate: 2025-01-01\"),\nstatus(\"status: published\\ndate: 2025-01-01\"),\nstatus(\"status: scheduled\\ndate: 2025-01-01\"),\nstatus(\"status: draft\\ndate: 2025-01-01\"), status(\"date: 2025-01-01\"),\nstatus(\"status: scheduled\"), status(\"status: scheduled\\ndate: 2024-01-01\"),\nstatus(\"status: live\"), status(\"status: draft\\ndraft: false\"),\nstatus(\"status: published\\ndraft: true\"),]"
+---
+[
+    (
+        "title: a",
+        Ok(
+            None,
+        ),
+    ),
+    (
+        "draft: true",
+        Ok(
+            Some(
+                "draft",
+            ),
+        ),
+    ),
+    (
+        "draft: false",
+        Ok(
+            Some(
+                "published",
+            ),
+        ),
+    ),
+    (
+        "status: draft",
+        Ok(
+            Some(
+                "draft",
+            ),
+        ),
+    ),
+    (
+        "status: published",
+        Ok(
+            Some(
+                "published",
+            ),
+        ),
+    ),
+    (
+        "draft: false\ndate: 2024-01-01",
+        Ok(
+            Some(
+                "published",
+            ),
+        ),
+    ),
+    (
+        "draft: false\ndate: 2025-01-01",
+        Ok(
+            Some(
+                "scheduled",
+            ),
+        ),
+    ),
+    (
+        "status: published\ndate: 2025-01-01",
+        Ok(
+            Some(
+                "scheduled",
+            ),
+        ),
+    ),
+    (
+        "status: scheduled\ndate: 2025-01-01",
+        Ok(
+            Some(
+                "scheduled",
+            ),
+        ),
+    ),
+    (
+        "status: draft\ndate: 2025-01-01",
+        Ok(
+            Some(
+                "draft",
+            ),
+        ),
+    ),
+    (
+        "date: 2025-01-01",
+        Ok(
+            None,
+        ),
+    ),
+    (
+        "status: scheduled",
+        Err(
+            "Parse error: `status: scheduled` needs a `date` in the future",
+        ),
+    ),
+    (
+        "status: scheduled\ndate: 2024-01-01",
+        Err(
+            "Parse error: `status: scheduled` needs a `date` in the future",
+        ),
+    ),
+    (
+        "status: live",
+        Err(
+            "Parse error: invalid `status` 'live': expected draft, published or scheduled",
+        ),
+    ),
+    (
+        "status: draft\ndraft: false",
+        Err(
+            "Parse error: front matter `status` and `draft` contradict each other",
+        ),
+    ),
+    (
+        "status: published\ndraft: true",
+        Err(
+            "Parse error: front matter `status` and `draft` contradict each other",
+        ),
+    ),
+]

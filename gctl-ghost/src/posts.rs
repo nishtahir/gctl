@@ -102,7 +102,7 @@ impl<'a> GhostPostsApi<'a> {
     }
 
     fn generate_token(&self) -> Result<String, error::GhostError> {
-        auth::generate_token(&self.options.id, &self.options.secret)
+        auth::generate_token(self.options.id, self.options.secret)
     }
 
     async fn make_request(

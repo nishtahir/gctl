@@ -4,7 +4,6 @@ resolver = "2"
 members = [
     "gctl-bin",
     "gctl-ghost",
-    "gctl-liquid",
     "gctl-markdown"
 ]
 default-members = ["gctl-bin"]

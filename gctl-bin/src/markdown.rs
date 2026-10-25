@@ -141,14 +141,14 @@ fn resolve_status(
     }
     let wants_published = match (fm.status.as_deref(), fm.draft) {
         (Some("draft"), Some(false)) | (Some("published" | "scheduled"), Some(true)) => {
-            return Err(GctlCliError::ParseError(
+            return Err(GctlCliError::Parse(
                 "front matter `status` and `draft` contradict each other".into(),
             ))
         }
         (Some("draft"), _) | (None, Some(true) | None) => false,
         (Some("published" | "scheduled"), _) | (None, Some(false)) => true,
         (Some(other), _) => {
-            return Err(GctlCliError::ParseError(format!(
+            return Err(GctlCliError::Parse(format!(
                 "invalid `status` '{other}': expected draft, published or scheduled"
             )))
         }
@@ -158,7 +158,7 @@ fn resolve_status(
     match (wants_published, fm.status.as_deref()) {
         (false, _) => Ok(Some("draft")),
         (true, _) if in_future => Ok(Some("scheduled")),
-        (true, Some("scheduled")) => Err(GctlCliError::ParseError(
+        (true, Some("scheduled")) => Err(GctlCliError::Parse(
             "`status: scheduled` needs a `date` in the future".into(),
         )),
         (true, _) => Ok(Some("published")),

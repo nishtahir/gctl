@@ -4,7 +4,6 @@ mod api;
 mod auth;
 mod error;
 mod images;
-mod jwt;
 mod model;
 mod options;
 mod posts;

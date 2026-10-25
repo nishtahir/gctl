@@ -4,7 +4,8 @@ A command-line interface tool for managing Ghost blog content through the Ghost 
 
 ## Features
 
-- Post management (create, read, update, delete)
+- Push markdown files to Ghost and pull posts back as markdown
+- List posts
 - Environment-based configuration
 - Error handling with custom error types
 - Support for Ghost Admin API v5.0
@@ -43,25 +44,13 @@ gctl --url https://yourblog.ghost.io --key your_admin_key [command]
 gctl post list
 ```
 
-### Get Post Details
+### Push and pull
 ```bash
-gctl post get <post-id>
+gctl push content/      # create or update posts from markdown files
+gctl pull content/      # write posts as markdown files
 ```
 
-### Create Post
-```bash
-gctl post create "Post Title" "Post Content"
-```
-
-### Update Post
-```bash
-gctl post update <post-id> --title "New Title" --content "New Content"
-```
-
-### Delete Post
-```bash
-gctl post delete <post-id>
-```
+See [Publishing markdown](#publishing-markdown) below.
 
 ## Ghost Admin API Key
 
@@ -102,7 +91,7 @@ cargo test
 
 ## Publishing markdown
 
-`gctl push` (alias of `gctl publish`) works like a static site generator's
+`gctl push` works like a static site generator's
 content directory: write posts as markdown files with YAML front matter, then
 push them to update Ghost.
 
@@ -169,9 +158,11 @@ Ghost's Lexical format (headings, paragraphs, bold/italic/strikethrough/code,
 links, images, nested lists, quotes, code blocks, rules and raw HTML blocks).
 Files that start with `_` or `.` are skipped.
 
-Not supported yet: tables, footnotes, task lists, setext headings, shortcodes,
-and uploading local images (use absolute image URLs for now). Tables are best
-written as an HTML block.
+Tables use GFM pipe syntax and are sent to Ghost as an HTML card, since Lexical
+has no table node.
+
+Not supported yet: footnotes, task lists, setext headings, shortcodes, and
+uploading local images (use absolute image URLs for now).
 
 ## Including other files
 

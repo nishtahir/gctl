@@ -24,8 +24,6 @@ pub struct GctlCli {
         default_value = "v5"
     )]
     pub ghost_api_version: String,
-    #[arg(long, default_value = "table", global = true)]
-    pub output_format: String,
     #[arg(short, long, global = true)]
     pub verbose: bool,
     #[arg(short = 'V', long, global = true)]
@@ -51,16 +49,12 @@ pub enum GctlCommands {
         #[command(subcommand)]
         command: AuthCommands,
     },
+    #[command(about = "Inspect posts on Ghost")]
     Post {
         #[command(subcommand)]
         command: PostCommands,
     },
-    Image {
-        #[command(subcommand)]
-        command: ImageCommands,
-    },
     #[command(
-        visible_alias = "push",
         about = "Push markdown files (YAML front matter) to Ghost as posts",
         long_about = "Compiles markdown files with YAML front matter to Lexical and creates or \
 updates the matching Ghost post.\n\n\
@@ -81,7 +75,7 @@ file, and includes may nest). Add `lang=\"rust\"` to include a file as a code bl
 Includes can only read files inside the pushed directory (or --include-root). Name \
 snippet files or folders starting with `_` so they aren't pushed as posts."
     )]
-    Publish(PublishArgs),
+    Push(PushArgs),
     #[command(
         about = "Pull posts from Ghost into markdown files",
         long_about = "Writes each post as `<dir>/<slug>.md` with YAML front matter (including its \
@@ -89,7 +83,7 @@ Ghost `id`, so a later `gctl push` updates the same post). Only posts with Lexic
 content are pulled. Existing files are matched by id.\n\n\
 A file is only overwritten when it already matches the post, or with --force; \
 otherwise it is reported as a conflict and left alone.\n\n\
-Content markdown can't express (callouts, bookmarks, footnotes, tables, ...) is \
+Content markdown can't express (callouts, bookmarks, footnotes, ...) is \
 approximated and listed in the file's `lossy:` front matter. `gctl push` refuses \
 such files until you review them and remove that line."
     )]
@@ -97,7 +91,7 @@ such files until you review them and remove that line."
 }
 
 #[derive(Args)]
-pub struct PublishArgs {
+pub struct PushArgs {
     #[arg(
         default_value = "content",
         help = "Markdown file or directory of markdown files"
@@ -165,10 +159,6 @@ pub enum AuthCommands {
 pub enum PostCommands {
     #[command(about = "List posts (all statuses unless --status is given)")]
     List(PostListArgs),
-    Get(PostGetArgs),
-    Add(PostAddArgs),
-    Update(PostUpdateArgs),
-    Delete(PostDeleteArgs),
 }
 
 #[derive(Args)]
@@ -205,77 +195,4 @@ pub struct PostListArgs {
     pub limit: usize,
     #[arg(long, conflicts_with = "limit", help = "Return every matching post")]
     pub all: bool,
-}
-
-#[derive(Args)]
-pub struct PostGetArgs {
-    #[arg(help = "Post ID")]
-    pub id: String,
-}
-
-#[derive(Args)]
-pub struct PostAddArgs {
-    #[arg(long)]
-    pub title: String,
-    #[arg(long)]
-    pub content: Option<String>,
-    #[arg(long)]
-    pub json: Option<String>,
-    #[arg(long)]
-    pub status: Option<String>,
-    #[arg(long)]
-    pub file: Option<String>,
-}
-
-#[derive(Args)]
-#[command(group(
-    clap::ArgGroup::new("update_source")
-        .args(["id", "json", "markdown"])
-        .required(true)
-        .multiple(true)
-))]
-pub struct PostUpdateArgs {
-    #[arg(help = "Post ID to update", group = "update_source")]
-    pub id: Option<String>,
-    #[arg(
-        long,
-        help = "Path to a JSON file with post data",
-        group = "update_source"
-    )]
-    pub json: Option<String>,
-    #[arg(
-        long,
-        short,
-        help = "Path to a Jekyll formatted markdown file with yaml frontmatter",
-        group = "update_source"
-    )]
-    pub markdown: Option<String>,
-    #[arg(long, help = "Update post title")]
-    pub title: Option<String>,
-    #[arg(long, help = "Update post slug")]
-    pub slug: Option<String>,
-    #[arg(long, help = "Update post status")]
-    pub status: Option<String>,
-    #[arg(long, help = "Update post visibility")]
-    pub visibility: Option<String>,
-}
-
-#[derive(Args)]
-pub struct PostDeleteArgs {
-    #[arg(help = "Post ID")]
-    pub id: String,
-}
-
-#[derive(Subcommand)]
-pub enum ImageCommands {
-    Upload {
-        #[arg(help = "Image file")]
-        file: String,
-
-        #[arg(help = "Image Purpose", long)]
-        purpose: Option<String>,
-
-        #[arg(help = "Image ref", long)]
-        ref_: Option<String>,
-    },
 }

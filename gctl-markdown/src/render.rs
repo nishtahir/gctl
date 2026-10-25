@@ -312,7 +312,7 @@ fn escape_line_start(line: &str) -> String {
         && trimmed[hashes..]
             .chars()
             .next()
-            .map_or(true, char::is_whitespace)
+            .is_none_or(char::is_whitespace)
         || trimmed.starts_with('>')
         || trimmed.starts_with("- ")
         || trimmed.starts_with("+ ")

@@ -16,7 +16,7 @@ pub struct StoredConfig {
 impl StoredConfig {
     pub fn path() -> Result<PathBuf, GctlCliError> {
         let dir = dirs::config_dir()
-            .ok_or_else(|| GctlCliError::ConfigError("Could not locate config directory".into()))?;
+            .ok_or_else(|| GctlCliError::Config("Could not locate config directory".into()))?;
         Ok(dir.join("gctl").join("config.json"))
     }
 
@@ -24,7 +24,7 @@ impl StoredConfig {
     pub fn load() -> Result<Self, GctlCliError> {
         match fs::read_to_string(Self::path()?) {
             Ok(contents) => serde_json::from_str(&contents)
-                .map_err(|e| GctlCliError::ConfigError(format!("Invalid config file: {e}"))),
+                .map_err(|e| GctlCliError::Config(format!("Invalid config file: {e}"))),
             Err(e) if e.kind() == ErrorKind::NotFound => Ok(Self::default()),
             Err(e) => Err(e.into()),
         }

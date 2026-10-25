@@ -34,11 +34,11 @@ impl<'a> GhostContentApi<'a> {
         Ok(GhostContentApi { options, client })
     }
 
-    pub fn posts(&self) -> GhostPostsApi {
+    pub fn posts(&self) -> GhostPostsApi<'_> {
         GhostPostsApi::new(&self.options, &self.client)
     }
 
-    pub fn images(&self) -> GhostImageApi {
+    pub fn images(&self) -> GhostImageApi<'_> {
         GhostImageApi::new(&self.options, &self.client)
     }
 }

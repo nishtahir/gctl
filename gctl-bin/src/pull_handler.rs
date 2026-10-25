@@ -12,13 +12,12 @@ use tracing::{debug, info};
 use crate::cli::PullArgs;
 use crate::error::GctlCliError;
 use crate::markdown::{resolve_includes, Source};
-use crate::output::{format_sync_results, OutputFormat, SyncRow};
-use crate::publish_handler::{display_name, find_content_files};
+use crate::output::{format_sync_results, SyncRow};
+use crate::push_handler::{display_name, find_content_files};
 
 #[derive(Builder)]
 pub struct PullCommandHandler<'a> {
     api: &'a GhostContentApi<'a>,
-    format: OutputFormat,
 }
 
 /// A post rendered as the text of a markdown file.
@@ -69,7 +68,7 @@ pub fn render_post(post: &Post) -> Result<Option<RenderedPost>, GctlCliError> {
         return Ok(None);
     };
     let imported = gctl_markdown::from_lexical(lexical)
-        .map_err(|e| GctlCliError::ParseError(e.to_string()))?;
+        .map_err(|e| GctlCliError::Parse(e.to_string()))?;
     let body = gctl_markdown::to_markdown(&imported.blocks);
 
     let tags: Vec<&str> = post
@@ -99,7 +98,7 @@ pub fn render_post(post: &Post) -> Result<Option<RenderedPost>, GctlCliError> {
     };
 
     let yaml = serde_yaml::to_string(&front_matter)
-        .map_err(|e| GctlCliError::ParseError(e.to_string()))?;
+        .map_err(|e| GctlCliError::Parse(e.to_string()))?;
     let mut file = format!("---\nid: \"{id}\"\n{yaml}---\n");
     if !body.trim().is_empty() {
         file.push('\n');
@@ -197,7 +196,7 @@ fn front_matter_agrees(local: &FrontMatter, remote: &FrontMatter) -> bool {
 
 /// `<dir>/<slug>.md`, kept visible to `gctl push` and safe as a file name.
 fn path_for(dir: &Path, post: &Post) -> PathBuf {
-    let slug = crate::publish_handler::slugify(post.slug.as_deref().unwrap_or_default());
+    let slug = crate::push_handler::slugify(post.slug.as_deref().unwrap_or_default());
     let name = if slug.is_empty() {
         post.id.clone().unwrap_or_else(|| "post".into())
     } else {
@@ -310,10 +309,10 @@ impl<'a> PullCommandHandler<'a> {
             rows.push(row(name, label, status, detail));
         }
 
-        format_sync_results(rows, self.format);
+        format_sync_results(rows);
 
         if conflicts > 0 {
-            return Err(GctlCliError::PublishError(format!(
+            return Err(GctlCliError::Push(format!(
                 "{conflicts} file(s) differ from Ghost and were left alone"
             )));
         }

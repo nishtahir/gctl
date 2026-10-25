@@ -30,7 +30,7 @@ impl AuthCommandHandler {
                 Url::parse(input).map(|_| ()).map_err(|e| e.to_string())
             })
             .interact_text()
-            .map_err(|e| GctlCliError::ConfigError(e.to_string()))?;
+            .map_err(|e| GctlCliError::Config(e.to_string()))?;
 
         let ghost_admin_key = Password::new()
             .with_prompt("Admin API key (id:secret)")
@@ -40,7 +40,7 @@ impl AuthCommandHandler {
                     .map_err(|e| e.to_string())
             })
             .interact()
-            .map_err(|e| GctlCliError::ConfigError(e.to_string()))?;
+            .map_err(|e| GctlCliError::Config(e.to_string()))?;
 
         let path = StoredConfig {
             ghost_url: Some(ghost_url),

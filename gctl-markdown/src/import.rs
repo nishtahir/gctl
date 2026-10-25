@@ -287,9 +287,12 @@ fn unsupported_markdown(markdown: &str) -> Vec<String> {
 
 // ---- minimal HTML for callouts and captions ----
 
+/// An open tag (name and optional `href`) with the inlines collected inside it.
+type Frame = (Option<(String, Option<String>)>, Vec<Inline>);
+
 /// Converts the inline HTML Ghost stores in callouts and captions.
 fn html_inlines(html: &str) -> Vec<Inline> {
-    let mut stack: Vec<(Option<(String, Option<String>)>, Vec<Inline>)> = vec![(None, Vec::new())];
+    let mut stack: Vec<Frame> = vec![(None, Vec::new())];
     let mut fmt = 0u32;
     let mut rest = html;
 
@@ -348,7 +351,7 @@ fn html_inlines(html: &str) -> Vec<Inline> {
 }
 
 fn push_text(
-    stack: &mut [(Option<(String, Option<String>)>, Vec<Inline>)],
+    stack: &mut [Frame],
     text: &str,
     format: u32,
 ) {

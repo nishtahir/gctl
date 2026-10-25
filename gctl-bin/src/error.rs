@@ -4,27 +4,27 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum GctlCliError {
     #[error("Failed to parse URL: {0}")]
-    UrlParseError(#[from] url::ParseError),
+    UrlParse(#[from] url::ParseError),
     #[error("Ghost API error: {0}")]
-    GhostError(#[from] GhostError),
+    Ghost(#[from] GhostError),
     #[error("Configuration error: {0}")]
-    ConfigError(String),
+    Config(String),
     #[error("Markdown error: {0}")]
-    MarkdownError(#[from] gctl_markdown::MarkdownError),
+    Markdown(#[from] gctl_markdown::MarkdownError),
     #[error("{0}")]
-    PublishError(String),
+    Push(String),
     #[error("Parse error: {0}")]
-    ParseError(String),
+    Parse(String),
 }
 
 impl From<std::io::Error> for GctlCliError {
     fn from(value: std::io::Error) -> Self {
-        GctlCliError::ConfigError(value.to_string())
+        GctlCliError::Config(value.to_string())
     }
 }
 
 impl From<serde_json::Error> for GctlCliError {
     fn from(err: serde_json::Error) -> Self {
-        GctlCliError::ParseError(err.to_string())
+        GctlCliError::Parse(err.to_string())
     }
 }

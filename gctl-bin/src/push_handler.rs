@@ -6,15 +6,14 @@ use console::style;
 use gctl_ghost::{GhostContentApi, Post, PostFilter};
 use tracing::{debug, info};
 
-use crate::cli::PublishArgs;
+use crate::cli::PushArgs;
 use crate::error::GctlCliError;
 use crate::markdown::{compile_markdown, Source};
-use crate::output::{format_sync_results, OutputFormat, SyncRow};
+use crate::output::{format_sync_results, SyncRow};
 
 #[derive(Builder)]
-pub struct PublishCommandHandler<'a> {
+pub struct PushCommandHandler<'a> {
     api: &'a GhostContentApi<'a>,
-    format: OutputFormat,
 }
 
 enum Outcome {
@@ -29,17 +28,17 @@ struct Pushed {
     warning: Option<String>,
 }
 
-impl<'a> PublishCommandHandler<'a> {
-    pub async fn handle_command(&self, args: PublishArgs) -> Result<(), GctlCliError> {
+impl<'a> PushCommandHandler<'a> {
+    pub async fn handle_command(&self, args: PushArgs) -> Result<(), GctlCliError> {
         let root = PathBuf::from(&args.path);
         let files = find_content_files(&root)?;
         if files.is_empty() {
-            return Err(GctlCliError::PublishError(format!(
+            return Err(GctlCliError::Push(format!(
                 "No markdown files found in {}",
                 root.display()
             )));
         }
-        info!("Publishing {} file(s)...", files.len());
+        info!("Pushing {} file(s)...", files.len());
 
         // Includes may read inside the pushed directory (or the folder of a
         // single pushed file) unless a wider root is given explicitly.
@@ -56,8 +55,8 @@ impl<'a> PublishCommandHandler<'a> {
         let mut failures = 0;
         for file in &files {
             let name = display_name(&root, file);
-            debug!("Publishing {}", name);
-            match self.publish_file(file, &include_root, &args).await {
+            debug!("Pushing {}", name);
+            match self.push_file(file, &include_root, &args).await {
                 Ok(Pushed {
                     outcome,
                     post,
@@ -86,22 +85,22 @@ impl<'a> PublishCommandHandler<'a> {
             }
         }
 
-        format_sync_results(rows, self.format);
+        format_sync_results(rows);
 
         if failures > 0 {
-            return Err(GctlCliError::PublishError(format!(
-                "{failures} of {} file(s) failed to publish",
+            return Err(GctlCliError::Push(format!(
+                "{failures} of {} file(s) failed to push",
                 files.len()
             )));
         }
         Ok(())
     }
 
-    async fn publish_file(
+    async fn push_file(
         &self,
         file: &Path,
         include_root: &Path,
-        args: &PublishArgs,
+        args: &PushArgs,
     ) -> Result<Pushed, GctlCliError> {
         let content = fs::read_to_string(file)?;
         let source = Source {
@@ -110,15 +109,15 @@ impl<'a> PublishCommandHandler<'a> {
         };
         let compiled = compile_markdown(&content, Some(&source))?;
         if !compiled.lossy.is_empty() && !args.force {
-            return Err(GctlCliError::ParseError(format!(
+            return Err(GctlCliError::Parse(format!(
                 "pulled with approximations ({}); pushing would change the post. Review the file, then delete its `lossy:` line, or push with --force",
                 compiled.lossy.join(", ")
             )));
         }
         let mut post = compiled.post;
 
-        if post.title.as_deref().map_or(true, |t| t.trim().is_empty()) {
-            return Err(GctlCliError::ParseError(
+        if post.title.as_deref().is_none_or(|t| t.trim().is_empty()) {
+            return Err(GctlCliError::Parse(
                 "front matter is missing a `title`".into(),
             ));
         }
@@ -210,7 +209,7 @@ fn slug_from_path(file: &Path) -> String {
 
 /// Lowercase ASCII, with runs of anything but letters and digits collapsed to
 /// `-`. Staying within ASCII keeps the slug stable if Ghost normalizes it, so
-/// the next publish still finds the post.
+/// the next push still finds the post.
 pub(crate) fn slugify(name: &str) -> String {
     let mut slug = String::new();
     for c in name.chars() {
@@ -257,7 +256,7 @@ pub(crate) fn find_content_files(root: &Path) -> Result<Vec<PathBuf>, GctlCliErr
         return Ok(vec![root.to_path_buf()]);
     }
     if !root.is_dir() {
-        return Err(GctlCliError::PublishError(format!(
+        return Err(GctlCliError::Push(format!(
             "{} does not exist",
             root.display()
         )));
@@ -303,7 +302,7 @@ mod test {
 
     #[test]
     fn finds_markdown_files_and_skips_hidden_and_underscored() {
-        let dir = std::env::temp_dir().join(format!("gctl-publish-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("gctl-push-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(dir.join("nested")).unwrap();
         fs::create_dir_all(dir.join(".git")).unwrap();

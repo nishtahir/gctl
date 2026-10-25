@@ -1,7 +1,7 @@
 use pest::iterators::Pair;
 use pest::Parser;
 
-use crate::ast::{format, Block, Document, Inline, ListItem};
+use crate::ast::{format, Align, Block, Document, Inline, ListItem};
 use crate::error::MarkdownError;
 use crate::front_matter::FrontMatter;
 
@@ -102,6 +102,13 @@ fn parse_body(body: Pair<Rule>) -> Result<Vec<Block>, MarkdownError> {
                     .collect::<Vec<_>>()
                     .join("\n");
                 blocks.push(quote(parse_blocks(&text)?));
+            }
+            Rule::table => {
+                let source = pair.as_str();
+                match parse_table(pair)? {
+                    Some(table) => blocks.push(table),
+                    None => blocks.extend(paragraph(source)?),
+                }
             }
             Rule::ulist => blocks.push(parse_list(pair, false)?),
             Rule::olist => blocks.push(parse_list(pair, true)?),
@@ -232,6 +239,22 @@ fn quote(blocks: Vec<Block>) -> Block {
                 text: code,
                 format: format::CODE,
             }]),
+            // Quotes hold only inline nodes, so each row becomes a line.
+            Block::Table { header, rows, .. } => {
+                for row in std::iter::once(header).chain(rows) {
+                    let mut line = Vec::new();
+                    for (i, cell) in row.into_iter().enumerate() {
+                        if i > 0 {
+                            line.push(Inline::Text {
+                                text: " | ".into(),
+                                format: 0,
+                            });
+                        }
+                        line.extend(cell);
+                    }
+                    groups.push(merge_text(line));
+                }
+            }
             // Includes don't work inside quotes; keep the directive as text.
             Block::Include { path, lang } => groups.push(vec![Inline::Text {
                 text: directive(&path, lang.as_deref()),
@@ -241,6 +264,75 @@ fn quote(blocks: Vec<Block>) -> Block {
         }
     }
     Block::Quote(groups)
+}
+
+/// `None` when the header and delimiter rows disagree on the column count.
+fn parse_table(pair: Pair<Rule>) -> Result<Option<Block>, MarkdownError> {
+    let mut lines = pair.into_inner().map(|row| row.as_str());
+    let header = split_row(lines.next().unwrap_or_default());
+    let align: Vec<Align> = split_row(lines.next().unwrap_or_default())
+        .iter()
+        .map(|cell| {
+            let cell = cell.trim();
+            match (cell.starts_with(':'), cell.ends_with(':')) {
+                (true, true) => Align::Center,
+                (true, false) => Align::Left,
+                (false, true) => Align::Right,
+                (false, false) => Align::None,
+            }
+        })
+        .collect();
+    if header.len() != align.len() {
+        return Ok(None);
+    }
+
+    let columns = align.len();
+    let cells = |raw: Vec<String>| -> Result<Vec<Vec<Inline>>, MarkdownError> {
+        // Short rows are padded and extra cells dropped, as in GFM.
+        let mut raw = raw;
+        raw.resize(columns, String::new());
+        raw.iter().map(|cell| parse_inlines(cell.trim())).collect()
+    };
+    let header = cells(header)?;
+    let rows = lines
+        .map(|line| cells(split_row(line)))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Some(Block::Table {
+        align,
+        header,
+        rows,
+    }))
+}
+
+/// Splits a table row at unescaped pipes. `\|` becomes a plain `|`, which is
+/// ordinary text to the inline parser (code spans included).
+fn split_row(line: &str) -> Vec<String> {
+    let line = line.trim();
+    let line = line.strip_prefix('|').unwrap_or(line);
+    let mut cells = vec![String::new()];
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' if chars.peek() == Some(&'|') => {
+                chars.next();
+                cells.last_mut().unwrap().push('|');
+            }
+            '\\' => {
+                cells.last_mut().unwrap().push(c);
+                if let Some(next) = chars.next() {
+                    cells.last_mut().unwrap().push(next);
+                }
+            }
+            '|' => cells.push(String::new()),
+            _ => cells.last_mut().unwrap().push(c),
+        }
+    }
+    // A trailing pipe closes the last cell rather than opening another.
+    if cells.len() > 1 && cells.last().is_some_and(|c| c.trim().is_empty()) && line.ends_with('|')
+    {
+        cells.pop();
+    }
+    cells
 }
 
 fn parse_list(pair: Pair<Rule>, ordered: bool) -> Result<Block, MarkdownError> {

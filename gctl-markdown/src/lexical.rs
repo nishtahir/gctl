@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 
-use crate::ast::{Block, Document, Inline, ListItem};
+use crate::ast::{format, Align, Block, Document, Inline, ListItem};
 
 impl Document {
     /// The Lexical editor state Ghost stores in a post's `lexical` field.
@@ -88,6 +88,12 @@ fn block(b: &Block) -> Value {
             items,
         } => list(*ordered, *start, items, 0),
         Block::Rule => json!({ "type": "horizontalrule", "version": 1 }),
+        // Lexical has no table node; Ghost renders tables from an HTML card.
+        Block::Table {
+            align,
+            header,
+            rows,
+        } => json!({ "type": "html", "version": 1, "html": table_html(align, header, rows) }),
         Block::Html(html) if html.trim() == MEMBERS_ONLY => {
             json!({ "type": "paywall", "version": 1 })
         }
@@ -199,4 +205,83 @@ fn inline(i: &Inline) -> Value {
         }),
         Inline::LineBreak => linebreak(),
     }
+}
+
+fn table_html(align: &[Align], header: &[Vec<Inline>], rows: &[Vec<Vec<Inline>>]) -> String {
+    let row = |tag: &str, cells: &[Vec<Inline>]| {
+        let cells: String = cells
+            .iter()
+            .zip(align)
+            .map(|(cell, align)| {
+                let style = match align {
+                    Align::None => "",
+                    Align::Left => " style=\"text-align:left\"",
+                    Align::Center => " style=\"text-align:center\"",
+                    Align::Right => " style=\"text-align:right\"",
+                };
+                format!("<{tag}{style}>{}</{tag}>", inlines_html(cell))
+            })
+            .collect();
+        format!("<tr>{cells}</tr>")
+    };
+    let mut html = format!("<table><thead>{}</thead>", row("th", header));
+    if !rows.is_empty() {
+        let body: String = rows.iter().map(|r| row("td", r)).collect();
+        html.push_str(&format!("<tbody>{body}</tbody>"));
+    }
+    html.push_str("</table>");
+    html
+}
+
+fn inlines_html(content: &[Inline]) -> String {
+    content
+        .iter()
+        .map(|i| match i {
+            Inline::Text { text, format } => {
+                let mut html = escape_html(text);
+                for (flag, tag) in [
+                    (format::CODE, "code"),
+                    (format::ITALIC, "em"),
+                    (format::BOLD, "strong"),
+                    (format::STRIKETHROUGH, "del"),
+                ] {
+                    if format & flag != 0 {
+                        html = format!("<{tag}>{html}</{tag}>");
+                    }
+                }
+                html
+            }
+            Inline::Link {
+                url,
+                title,
+                children,
+            } => {
+                let title = title
+                    .as_deref()
+                    .map(|t| format!(" title=\"{}\"", escape_attr(t)))
+                    .unwrap_or_default();
+                format!(
+                    "<a href=\"{}\"{title}>{}</a>",
+                    escape_attr(url),
+                    inlines_html(children)
+                )
+            }
+            Inline::Image { src, alt, title } => {
+                let title = title
+                    .as_deref()
+                    .map(|t| format!(" title=\"{}\"", escape_attr(t)))
+                    .unwrap_or_default();
+                format!(
+                    "<img src=\"{}\" alt=\"{}\"{title}>",
+                    escape_attr(src),
+                    escape_attr(alt)
+                )
+            }
+            Inline::LineBreak => "<br>".to_string(),
+        })
+        .collect()
+}
+
+fn escape_attr(text: &str) -> String {
+    escape_html(text).replace('"', "&quot;")
 }

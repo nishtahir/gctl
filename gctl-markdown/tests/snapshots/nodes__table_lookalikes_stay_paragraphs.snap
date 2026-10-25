@@ -1,0 +1,93 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"a | b\\n\\njust text\", \"| a | b |\\n| --- |\\n| 1 | 2 |\",\n\"| a | b |\\n| nope | nope |\"])"
+---
+[
+  {
+    "markdown": "a | b\n\njust text",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "a | b",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "just text",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| a | b |\n| --- |\n| 1 | 2 |",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "| a | b | | --- | | 1 | 2 |",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| a | b |\n| nope | nope |",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "| a | b | | nope | nope |",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

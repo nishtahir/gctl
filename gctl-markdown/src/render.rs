@@ -1,4 +1,4 @@
-use crate::ast::{format, Block, Inline, ListItem};
+use crate::ast::{format, Align, Block, Inline, ListItem};
 use crate::parser::merge_text;
 
 /// Renders blocks back to markdown that [`parse`](crate::parse) reads as the
@@ -43,6 +43,11 @@ fn render_block(block: &Block) -> String {
             items,
         } => list(*ordered, *start, items),
         Block::Rule => "---".to_string(),
+        Block::Table {
+            align,
+            header,
+            rows,
+        } => table(align, header, rows),
         Block::Include { path, lang } => crate::parser::directive(path, lang.as_deref()),
         Block::Html(html) => html_block(html),
         Block::Raw(markdown) => markdown.trim().to_string(),
@@ -77,6 +82,24 @@ fn html_block(html: &str) -> String {
         .filter(|line| !line.trim().is_empty())
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn table(align: &[Align], header: &[Vec<Inline>], rows: &[Vec<Vec<Inline>>]) -> String {
+    let row = |cells: Vec<String>| format!("| {} |", cells.join(" | "));
+    let cell = |content: &Vec<Inline>| inline_line(content).replace('|', "\\|");
+    let delimiter = align.iter().map(|a| match a {
+        Align::None => "---",
+        Align::Left => ":--",
+        Align::Center => ":-:",
+        Align::Right => "--:",
+    });
+
+    let mut lines = vec![
+        row(header.iter().map(cell).collect()),
+        row(delimiter.map(String::from).collect()),
+    ];
+    lines.extend(rows.iter().map(|r| row(r.iter().map(cell).collect())));
+    lines.join("\n")
 }
 
 fn prefix_lines(text: &str, prefix: &str) -> String {

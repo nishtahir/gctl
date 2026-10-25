@@ -69,3 +69,15 @@ fn documents_are_stable() {
     let twice = to_markdown(&parse(&once).unwrap().body);
     insta::assert_snapshot!(format!("{once}\n=== same: {}", once == twice));
 }
+
+#[test]
+fn tables() {
+    insta::assert_debug_snapshot!(roundtrip(&[
+        "| a | b |\n| --- | --- |\n| 1 | 2 |",
+        "a | b\n:-- | --:\nx | y",
+        "| L | C | R |\n|:--|:-:|--:|\n| 1 | 2 | 3 |",
+        "| `a\\|b` | x \\| y | **b** *i* [l](/u) |\n|---|---|---|\n| | z | |",
+        "| only |\n| - |",
+        "| a | b |\n| - | - |\n| short |",
+    ]));
+}

@@ -1,0 +1,112 @@
+---
+source: gctl-markdown/tests/nodes.rs
+expression: "cases(&\n[\"| a | b |\\n| --- | --- |\\n| 1 | 2 |\", \"a | b\\n:-- | --:\\nx | y\",\n\"| L | C | R | N |\\n|:--|:-:|--:|---|\\n| 1 | 2 | 3 | 4 |\",\n\"| **bold** | [link](/x \\\"T\\\") | `a\\\\|b` |\\n|---|---|---|\\n| <tag> & \\\"q\\\" | ~~s~~ *e* | |\",\n\"| only header |\\n| --- |\",\n\"| a | b |\\n| - | - |\\n| short |\\n| long | row | extra |\",\n\"intro\\n| a | b |\\n| - | - |\\n| 1 | 2 |\\n\\nafter\"])"
+---
+[
+  {
+    "markdown": "| a | b |\n| --- | --- |\n| 1 | 2 |",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "a | b\n:-- | --:\nx | y",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th style=\"text-align:left\">a</th><th style=\"text-align:right\">b</th></tr></thead><tbody><tr><td style=\"text-align:left\">x</td><td style=\"text-align:right\">y</td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| L | C | R | N |\n|:--|:-:|--:|---|\n| 1 | 2 | 3 | 4 |",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th style=\"text-align:left\">L</th><th style=\"text-align:center\">C</th><th style=\"text-align:right\">R</th><th>N</th></tr></thead><tbody><tr><td style=\"text-align:left\">1</td><td style=\"text-align:center\">2</td><td style=\"text-align:right\">3</td><td>4</td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| **bold** | [link](/x \"T\") | `a\\|b` |\n|---|---|---|\n| <tag> & \"q\" | ~~s~~ *e* | |",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th><strong>bold</strong></th><th><a href=\"/x\" title=\"T\">link</a></th><th><code>a|b</code></th></tr></thead><tbody><tr><td>&lt;tag&gt; &amp; \"q\"</td><td><del>s</del> <em>e</em></td><td></td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| only header |\n| --- |",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th>only header</th></tr></thead></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "| a | b |\n| - | - |\n| short |\n| long | row | extra |",
+    "nodes": [
+      {
+        "html": "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>short</td><td></td></tr><tr><td>long</td><td>row</td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "markdown": "intro\n| a | b |\n| - | - |\n| 1 | 2 |\n\nafter",
+    "nodes": [
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "intro",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      },
+      {
+        "html": "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>",
+        "type": "html",
+        "version": 1
+      },
+      {
+        "children": [
+          {
+            "detail": 0,
+            "format": 0,
+            "mode": "normal",
+            "style": "",
+            "text": "after",
+            "type": "extended-text",
+            "version": 1
+          }
+        ],
+        "direction": "ltr",
+        "format": "",
+        "indent": 0,
+        "type": "paragraph",
+        "version": 1
+      }
+    ]
+  }
+]

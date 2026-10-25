@@ -27,6 +27,12 @@ pub enum Block {
         items: Vec<ListItem>,
     },
     Rule,
+    /// A GFM pipe table. Every row has one cell per column.
+    Table {
+        align: Vec<Align>,
+        header: Vec<Vec<Inline>>,
+        rows: Vec<Vec<Vec<Inline>>>,
+    },
     Html(String),
     /// `{{< include "path" >}}`: content from another file. Replaced by
     /// [`Document::resolve_includes`]; with `lang`, the file becomes a code block.
@@ -42,6 +48,14 @@ pub enum Block {
         title: Option<String>,
         href: Option<String>,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Align {
+    None,
+    Left,
+    Center,
+    Right,
 }
 
 #[derive(Debug, Clone, PartialEq)]

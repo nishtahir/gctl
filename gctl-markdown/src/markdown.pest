@@ -21,7 +21,7 @@ fm_line     = _{ (!"\n" ~ ANY)* ~ "\n" }
 fm_close    = _{ "---" ~ sp* ~ line_end }
 
 body  = { (blank | block)* }
-block = _{ heading | fenced_code | hr | blockquote | include | ulist | olist | html_block | paragraph }
+block = _{ heading | fenced_code | hr | blockquote | include | ulist | olist | table | html_block | paragraph }
 
 // ----------------------------------------------------------------- blocks
 
@@ -32,6 +32,14 @@ include_path = ${ "\"" ~ include_text_dq ~ "\"" | "'" ~ include_text_sq ~ "'" }
 include_lang = ${ "\"" ~ include_text_dq ~ "\"" | "'" ~ include_text_sq ~ "'" }
 include_text_dq = @{ (!("\"" | "\n") ~ ANY)* }
 include_text_sq = @{ (!("'" | "\n") ~ ANY)* }
+
+// GFM pipe table: a header row, a delimiter row (`| --- | :-: |`), then body
+// rows. Cells are split in the parser; a header whose cell count differs from
+// the delimiter row is not a table and falls back to a paragraph.
+table       = { table_row ~ table_delim ~ table_row* }
+table_row   = @{ indent ~ (!("|" | "\n") ~ ANY)* ~ "|" ~ (!"\n" ~ ANY)* ~ line_end }
+delim_cell  = _{ sp* ~ ":"? ~ "-"+ ~ ":"? ~ sp* }
+table_delim = @{ indent ~ ("|" ~ delim_cell ~ ("|" ~ delim_cell)* | delim_cell ~ ("|" ~ delim_cell)+) ~ "|"? ~ sp* ~ line_end }
 
 heading  = { indent ~ h_marker ~ sp+ ~ h_text ~ line_end }
 h_marker = @{ "#"{1, 6} }
@@ -76,7 +84,7 @@ html_line   = _{ !(sp* ~ line_end) ~ (!"\n" ~ ANY)+ ~ line_end }
 paragraph  = { para_first ~ para_more* }
 para_first = @{ (!"\n" ~ ANY)+ ~ line_end }
 para_more  = @{ !(sp* ~ line_end) ~ !para_break ~ (!"\n" ~ ANY)+ ~ line_end }
-para_break = _{ indent ~ ((h_marker ~ " ") | "```" | hr | ">" | include) | ((("-" | "*" | "+") | (ASCII_DIGIT+ ~ ("." | ")"))) ~ " ") }
+para_break = _{ indent ~ ((h_marker ~ " ") | "```" | hr | ">" | include) | ((("-" | "*" | "+") | (ASCII_DIGIT+ ~ ("." | ")"))) ~ " ") | (table_row ~ table_delim) }
 
 // ----------------------------------------------------------------- inlines
 

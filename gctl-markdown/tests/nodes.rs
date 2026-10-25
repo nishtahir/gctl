@@ -263,3 +263,23 @@ snapshot!(
     "  {{< include \"a.md\" >}}",
     "    # four spaces is text"
 );
+
+// ---- table (an html card; Lexical has no table node) ----
+
+snapshot!(
+    table_nodes,
+    "| a | b |\n| --- | --- |\n| 1 | 2 |",
+    "a | b\n:-- | --:\nx | y",
+    "| L | C | R | N |\n|:--|:-:|--:|---|\n| 1 | 2 | 3 | 4 |",
+    "| **bold** | [link](/x \"T\") | `a\\|b` |\n|---|---|---|\n| <tag> & \"q\" | ~~s~~ *e* | |",
+    "| only header |\n| --- |",
+    "| a | b |\n| - | - |\n| short |\n| long | row | extra |",
+    "intro\n| a | b |\n| - | - |\n| 1 | 2 |\n\nafter",
+);
+
+snapshot!(
+    table_lookalikes_stay_paragraphs,
+    "a | b\n\njust text",
+    "| a | b |\n| --- |\n| 1 | 2 |",
+    "| a | b |\n| nope | nope |",
+);

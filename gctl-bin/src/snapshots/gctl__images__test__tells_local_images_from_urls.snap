@@ -1,0 +1,46 @@
+---
+source: gctl-bin/src/images.rs
+expression: results
+---
+[
+    (
+        "img/a.png",
+        true,
+    ),
+    (
+        "./a.png",
+        true,
+    ),
+    (
+        "../shared/a.png",
+        true,
+    ),
+    (
+        "a b.png",
+        true,
+    ),
+    (
+        "https://example.com/a.png",
+        false,
+    ),
+    (
+        "//cdn.example.com/a.png",
+        false,
+    ),
+    (
+        "data:image/png;base64,AAAA",
+        false,
+    ),
+    (
+        "/content/images/a.png",
+        false,
+    ),
+    (
+        "C:/a.png",
+        false,
+    ),
+    (
+        "",
+        false,
+    ),
+]

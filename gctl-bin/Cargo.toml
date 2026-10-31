@@ -26,5 +26,6 @@ dialoguer = "0.11"
 dirs = "5"
 similar = "2"
 open = "5"
+sha2 = "0.10"
 [dev-dependencies]
 insta = {workspace = true}

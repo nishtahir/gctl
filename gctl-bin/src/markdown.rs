@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -23,19 +24,55 @@ pub struct Source<'a> {
 
 /// Compiles a markdown file with YAML front matter into a Ghost post whose
 /// body is Lexical. Includes are resolved when `source` is given.
+#[cfg(test)]
 pub fn compile_markdown(
     content: &str,
     source: Option<&Source>,
 ) -> Result<CompiledPost, GctlCliError> {
-    compile_markdown_at(content, source, Utc::now())
+    compile_markdown_with(content, source, &HashMap::new())
 }
 
+/// Like [`compile_markdown`], with every image `src` (and the `image` front
+/// matter) that is a key in `images` replaced by its value.
+pub fn compile_markdown_with(
+    content: &str,
+    source: Option<&Source>,
+    images: &HashMap<String, String>,
+) -> Result<CompiledPost, GctlCliError> {
+    compile_at(content, source, images, Utc::now())
+}
+
+#[cfg(test)]
 fn compile_markdown_at(
     content: &str,
     source: Option<&Source>,
     now: DateTime<Utc>,
 ) -> Result<CompiledPost, GctlCliError> {
+    compile_at(content, source, &HashMap::new(), now)
+}
+
+fn compile_at(
+    content: &str,
+    source: Option<&Source>,
+    images: &HashMap<String, String>,
+    now: DateTime<Utc>,
+) -> Result<CompiledPost, GctlCliError> {
     let mut document = gctl_markdown::parse(content)?;
+    // Before includes are resolved: an image's path is relative to the file
+    // that wrote it, which is only known here.
+    document.visit_images_mut(&mut |src| {
+        if let Some(url) = images.get(src.as_str()) {
+            *src = url.clone();
+        }
+    });
+    if let Some(url) = document
+        .front_matter
+        .feature_image
+        .as_ref()
+        .and_then(|image| images.get(image))
+    {
+        document.front_matter.feature_image = Some(url.clone());
+    }
     if let Some(source) = source {
         let file = fs::canonicalize(source.file)?;
         document.resolve_includes(
@@ -188,6 +225,37 @@ mod test {
         // The lexical body is covered by the markdown crate's snapshot.
         assert!(post.lexical.take().unwrap().contains("Some "));
         insta::assert_json_snapshot!(post);
+    }
+
+    #[test]
+    fn rewrites_image_sources() {
+        let images = HashMap::from([
+            (
+                "img/a.png".to_string(),
+                "https://cdn.test/a.png".to_string(),
+            ),
+            (
+                "cover.png".to_string(),
+                "https://cdn.test/cover.png".to_string(),
+            ),
+        ]);
+        let compiled = compile_at(
+            "---\ntitle: T\nimage: cover.png\n---\n\n![a](img/a.png)\n\n![b](https://x.test/b.png)\n",
+            None,
+            &images,
+            at("2024-06-01T00:00:00Z"),
+        )
+        .unwrap();
+        let lexical = compiled.post.lexical.unwrap();
+        let srcs: Vec<_> = [
+            "https://cdn.test/a.png",
+            "https://x.test/b.png",
+            "img/a.png",
+        ]
+        .iter()
+        .map(|src| (*src, lexical.contains(src)))
+        .collect();
+        insta::assert_debug_snapshot!((compiled.post.feature_image, srcs));
     }
 
     #[test]

@@ -1,0 +1,23 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: "(compiled.post.feature_image, srcs)"
+---
+(
+    Some(
+        "https://cdn.test/cover.png",
+    ),
+    [
+        (
+            "https://cdn.test/a.png",
+            true,
+        ),
+        (
+            "https://x.test/b.png",
+            true,
+        ),
+        (
+            "img/a.png",
+            false,
+        ),
+    ],
+)

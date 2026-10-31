@@ -20,6 +20,7 @@ mod cli;
 mod config;
 mod diff_handler;
 mod error;
+mod images;
 mod log;
 mod markdown;
 mod new_handler;

@@ -191,6 +191,31 @@ has no table node.
 Not supported yet: footnotes, task lists, setext headings, shortcodes, and
 uploading local images (use absolute image URLs for now).
 
+## Images
+
+Images that point at a file next to the post are uploaded to Ghost when you push,
+and the post is sent with the Ghost URL instead:
+
+```markdown
+---
+title: Hello
+image: cover.png        # the feature image
+---
+
+![A diagram](img/diagram.png "Optional caption")
+```
+
+Paths are relative to the markdown file. URLs (`https://...`, `//...`) and paths
+starting with `/` are left alone. A path that doesn't exist is an error for that
+file; `--dry-run` checks them without uploading.
+
+Ghost keeps a new copy on every upload, so `gctl push` records each uploaded
+image (by a hash of its contents) in `.gctl-images.json` in the pushed directory
+and reuses the URL while the image is unchanged. Commit that file to share it
+with your team, or delete it to upload everything again.
+
+Images inside an included file are not uploaded; use full URLs there.
+
 ## Including other files
 
 Reuse content across posts with an include directive on a line of its own:

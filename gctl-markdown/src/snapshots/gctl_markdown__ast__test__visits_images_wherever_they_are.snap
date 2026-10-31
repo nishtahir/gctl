@@ -1,0 +1,18 @@
+---
+source: gctl-markdown/src/ast.rs
+expression: "(seen, again)"
+---
+(
+    [
+        "one.png",
+        "two.png",
+        "four.png",
+        "five.png",
+    ],
+    [
+        "u/one.png",
+        "u/two.png",
+        "u/four.png",
+        "u/five.png",
+    ],
+)

@@ -8,7 +8,8 @@ use tracing::{debug, info};
 
 use crate::cli::PushArgs;
 use crate::error::GctlCliError;
-use crate::markdown::{compile_markdown, Source};
+use crate::images::ImageStore;
+use crate::markdown::{compile_markdown_with, Source};
 use crate::output::{format_sync_results, SyncRow};
 
 #[derive(Builder)]
@@ -45,18 +46,26 @@ impl<'a> PushCommandHandler<'a> {
         let include_root = match &args.include_root {
             Some(dir) => PathBuf::from(dir),
             None if root.is_dir() => root.clone(),
-            None => root
-                .parent()
-                .filter(|p| !p.as_os_str().is_empty())
-                .map_or_else(|| PathBuf::from("."), Path::to_path_buf),
+            None => include_root_parent(&root),
         };
+
+        // Where uploaded images are remembered: next to the posts.
+        let cache_dir = if root.is_dir() {
+            root.clone()
+        } else {
+            include_root_parent(&root)
+        };
+        let mut images = ImageStore::load(&cache_dir, self.api.site_url().as_str());
 
         let mut rows = Vec::new();
         let mut failures = 0;
         for file in &files {
             let name = display_name(&root, file);
             debug!("Pushing {}", name);
-            match self.push_file(file, &include_root, &args).await {
+            match self
+                .push_file(file, &include_root, &mut images, &args)
+                .await
+            {
                 Ok(Pushed {
                     outcome,
                     post,
@@ -85,6 +94,10 @@ impl<'a> PushCommandHandler<'a> {
             }
         }
 
+        // Uploads already happened, so keep track of them even if some files failed.
+        if let Err(err) = images.save() {
+            tracing::warn!("could not save {}: {err}", crate::images::CACHE_FILE);
+        }
         format_sync_results(rows, args.json)?;
 
         if failures > 0 {
@@ -100,6 +113,7 @@ impl<'a> PushCommandHandler<'a> {
         &self,
         file: &Path,
         include_root: &Path,
+        images: &mut ImageStore,
         args: &PushArgs,
     ) -> Result<Pushed, GctlCliError> {
         let content = fs::read_to_string(file)?;
@@ -107,7 +121,10 @@ impl<'a> PushCommandHandler<'a> {
             file,
             root: include_root,
         };
-        let compiled = compile_markdown(&content, Some(&source))?;
+        let uploaded = images
+            .upload_for(self.api, file, &content, args.dry_run)
+            .await?;
+        let compiled = compile_markdown_with(&content, Some(&source), &uploaded)?;
         if !compiled.lossy.is_empty() && !args.force {
             return Err(GctlCliError::Parse(format!(
                 "pulled with approximations ({}); pushing would change the post. Review the file, then delete its `lossy:` line, or push with --force",
@@ -174,6 +191,13 @@ impl<'a> PushCommandHandler<'a> {
         let posts = self.api.posts().browse(&filter).await?;
         Ok(posts.into_iter().next().and_then(|p| p.id))
     }
+}
+
+/// The folder a single pushed file is in.
+fn include_root_parent(file: &Path) -> PathBuf {
+    file.parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
 }
 
 fn outcome_label(outcome: &Outcome, dry_run: bool) -> &'static str {

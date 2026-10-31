@@ -221,6 +221,24 @@ with your team, or delete it to upload everything again.
 
 Images inside an included file are not uploaded; use full URLs there.
 
+## Pages
+
+Ghost pages (About, Contact, ...) are pushed and pulled like posts. Add
+`type: page` to the front matter:
+
+```markdown
+---
+title: About
+type: page
+---
+```
+
+`gctl pull --pages` writes pages next to your posts with `type: page` set, and
+`gctl diff`, `gctl status`, `gctl pull --id` and `gctl post open` look at pages as
+well as posts. A file without `type` (or with `type: post`) is a post. A file
+that is a page on Ghost but has no `type: page` would be created as a new
+post, so keep the line.
+
 ## Including other files
 
 Reuse content across posts with an include directive on a line of its own:

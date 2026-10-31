@@ -257,6 +257,11 @@ pub struct PullArgs {
     pub limit: Option<usize>,
     #[arg(
         long,
+        help = "Also pull pages (written with `type: page` in the front matter)"
+    )]
+    pub pages: bool,
+    #[arg(
+        long,
         help = "Overwrite files whose content differs from the post in Ghost"
     )]
     pub force: bool,

@@ -46,6 +46,11 @@ pub struct Post {
     pub feature_image_caption: Option<String>,
     pub status: Option<String>,
     pub markdown: Option<String>,
+    /// Whether this is a page rather than a post. Not part of Ghost's JSON:
+    /// the API sets it from the endpoint the object came from.
+    #[serde(skip)]
+    #[builder(default)]
+    pub page: bool,
 }
 
 #[serde_with::skip_serializing_none]
@@ -81,6 +86,7 @@ pub struct Author {
 #[serde_with::skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostsResponse {
+    #[serde(alias = "pages")]
     pub posts: Vec<Post>,
     pub meta: Option<Meta>,
 }

@@ -89,8 +89,9 @@ pub(crate) async fn compare_file(
 ) -> Result<Compared, GctlCliError> {
     let content = fs::read_to_string(file)?;
     let front_matter = gctl_markdown::parse(&content)?.front_matter;
+    let page = front_matter.kind.as_deref() == Some("page");
     let post = match front_matter.id {
-        Some(id) => Some(api.posts().read(&id).await?),
+        Some(id) => Some(api.collection(page).read(&id).await?),
         None => {
             let slug = front_matter.slug.unwrap_or_else(|| slug_from_path(file));
             let filter = PostFilter {
@@ -98,7 +99,11 @@ pub(crate) async fn compare_file(
                 limit: Some(1),
                 ..PostFilter::default()
             };
-            api.posts().browse(&filter).await?.into_iter().next()
+            api.collection(page)
+                .browse(&filter)
+                .await?
+                .into_iter()
+                .next()
         }
     };
     let Some(post) = post else {

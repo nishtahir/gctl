@@ -3,7 +3,7 @@ use url::Url;
 
 use crate::images::GhostImageApi;
 use crate::options::GhostContentApiOptions;
-use crate::posts::GhostPostsApi;
+use crate::posts::{GhostPostsApi, Resource};
 use crate::GhostAdminToken;
 use crate::GhostError;
 use crate::GhostVersion;
@@ -40,7 +40,20 @@ impl<'a> GhostContentApi<'a> {
     }
 
     pub fn posts(&self) -> GhostPostsApi<'_> {
-        GhostPostsApi::new(&self.options, &self.client)
+        GhostPostsApi::new(&self.options, &self.client, Resource::Posts)
+    }
+
+    pub fn pages(&self) -> GhostPostsApi<'_> {
+        GhostPostsApi::new(&self.options, &self.client, Resource::Pages)
+    }
+
+    /// The pages API when `page`, else the posts API.
+    pub fn collection(&self, page: bool) -> GhostPostsApi<'_> {
+        if page {
+            self.pages()
+        } else {
+            self.posts()
+        }
     }
 
     pub fn images(&self) -> GhostImageApi<'_> {

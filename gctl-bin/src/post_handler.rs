@@ -29,22 +29,42 @@ fn looks_like_id(key: &str) -> bool {
     key.len() == 24 && key.chars().all(|c| c.is_ascii_hexdigit())
 }
 
-/// The post with this id or slug.
+/// The post, or failing that the page, with this id or slug.
 pub(crate) async fn find_post(api: &GhostContentApi<'_>, key: &str) -> Result<Post, GctlCliError> {
-    if looks_like_id(key) {
-        return Ok(api.posts().read(key).await?);
+    let by_id = looks_like_id(key);
+    let mut first_error = None;
+    for page in [false, true] {
+        let found = if by_id {
+            match api.collection(page).read(key).await {
+                Ok(post) => Some(post),
+                Err(err) => {
+                    first_error.get_or_insert(err);
+                    None
+                }
+            }
+        } else {
+            let filter = PostFilter {
+                slug: Some(key.to_string()),
+                limit: Some(1),
+                ..PostFilter::default()
+            };
+            api.collection(page)
+                .browse(&filter)
+                .await?
+                .into_iter()
+                .next()
+        };
+        if let Some(post) = found {
+            return Ok(post);
+        }
     }
-    let filter = PostFilter {
-        slug: Some(key.to_string()),
-        limit: Some(1),
-        ..PostFilter::default()
-    };
-    api.posts()
-        .browse(&filter)
-        .await?
-        .into_iter()
-        .next()
-        .ok_or_else(|| GctlCliError::Config(format!("No post with the id or slug `{key}`")))
+    // Neither has it; the error from the posts lookup is the more telling one.
+    match first_error {
+        Some(err) => Err(err.into()),
+        None => Err(GctlCliError::Config(format!(
+            "No post or page with the slug `{key}`"
+        ))),
+    }
 }
 
 /// The post's address in the Ghost editor.

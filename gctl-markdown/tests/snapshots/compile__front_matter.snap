@@ -11,6 +11,7 @@ expression: "(&fm, fm.all_tags(), fm.published_at())"
         slug: Some(
             "hello-world",
         ),
+        kind: None,
         date: Some(
             "2024-01-31",
         ),

@@ -11,6 +11,7 @@ expression: "parsed(&[\"Just text\\n\"])"
                     id: None,
                     title: None,
                     slug: None,
+                    kind: None,
                     date: None,
                     status: None,
                     draft: None,

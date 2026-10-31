@@ -1,0 +1,30 @@
+---
+source: gctl-bin/src/markdown.rs
+expression: kinds
+---
+[
+    (
+        "",
+        Ok(
+            false,
+        ),
+    ),
+    (
+        "type: post",
+        Ok(
+            false,
+        ),
+    ),
+    (
+        "type: page",
+        Ok(
+            true,
+        ),
+    ),
+    (
+        "type: article",
+        Err(
+            "Parse error: invalid `type` 'article': expected post or page",
+        ),
+    ),
+]

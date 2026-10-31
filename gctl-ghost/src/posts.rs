@@ -35,8 +35,8 @@ impl PostDataBuilder {
         self
     }
 
-    fn build(&self) -> serde_json::Value {
-        serde_json::json!({ "posts": [self.data] })
+    fn build(&self, key: &str) -> serde_json::Value {
+        serde_json::json!({ key: [self.data] })
     }
 }
 
@@ -91,14 +91,46 @@ fn quote(value: &str) -> String {
     format!("'{}'", value.replace('\\', "\\\\").replace('\'', "\\'"))
 }
 
+/// Ghost keeps posts and pages behind identical endpoints with different names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Resource {
+    Posts,
+    Pages,
+}
+
+impl Resource {
+    /// The endpoint, and the key of the objects in requests and responses.
+    fn name(self) -> &'static str {
+        match self {
+            Resource::Posts => "posts",
+            Resource::Pages => "pages",
+        }
+    }
+}
+
 pub struct GhostPostsApi<'a> {
     options: &'a GhostContentApiOptions<'a>,
     client: &'a Client,
+    resource: Resource,
 }
 
 impl<'a> GhostPostsApi<'a> {
-    pub fn new(options: &'a GhostContentApiOptions, client: &'a Client) -> Self {
-        GhostPostsApi { options, client }
+    pub fn new(
+        options: &'a GhostContentApiOptions,
+        client: &'a Client,
+        resource: Resource,
+    ) -> Self {
+        GhostPostsApi {
+            options,
+            client,
+            resource,
+        }
+    }
+
+    /// Marks what came back as a page when this is the pages API.
+    fn tag(&self, mut post: Post) -> Post {
+        post.page = self.resource == Resource::Pages;
+        post
     }
 
     fn generate_token(&self) -> Result<String, error::GhostError> {
@@ -185,7 +217,7 @@ impl<'a> GhostPostsApi<'a> {
             let response = self
                 .make_request_with_query(
                     "GET",
-                    "posts",
+                    self.resource.name(),
                     None,
                     &[
                         ("filter", filter_param.as_str()),
@@ -195,7 +227,7 @@ impl<'a> GhostPostsApi<'a> {
                 )
                 .await?;
             let data: PostsResponse = response.json().await?;
-            posts.extend(data.posts);
+            posts.extend(data.posts.into_iter().map(|post| self.tag(post)));
             if let Some(limit) = filter.limit {
                 if posts.len() >= limit {
                     posts.truncate(limit);
@@ -211,11 +243,15 @@ impl<'a> GhostPostsApi<'a> {
 
     pub async fn read(&self, post_id: &str) -> Result<Post, error::GhostError> {
         let response = self
-            .make_request("GET", &format!("posts/{}", post_id), None)
+            .make_request(
+                "GET",
+                &format!("{}/{}", self.resource.name(), post_id),
+                None,
+            )
             .await?;
 
         let data: PostsResponse = response.json().await?;
-        Ok(data.posts.into_iter().next().unwrap())
+        Ok(self.tag(data.posts.into_iter().next().unwrap()))
     }
 
     pub async fn edit(&self, post_id: &str, partial: &Post) -> Result<Post, error::GhostError> {
@@ -230,14 +266,18 @@ impl<'a> GhostPostsApi<'a> {
             existing_post.data.remove("mobiledoc");
             existing_post.data.remove("html");
         }
-        let updated_post = existing_post.build();
+        let updated_post = existing_post.build(self.resource.name());
 
         let response = self
-            .make_request("PUT", &format!("posts/{}", post_id), Some(&updated_post))
+            .make_request(
+                "PUT",
+                &format!("{}/{}", self.resource.name(), post_id),
+                Some(&updated_post),
+            )
             .await?;
 
         let data: PostsResponse = response.json().await?;
-        Ok(data.posts.into_iter().next().unwrap())
+        Ok(self.tag(data.posts.into_iter().next().unwrap()))
     }
 
     pub async fn add(&self, partial: &Post) -> Result<Post, error::GhostError> {
@@ -245,16 +285,24 @@ impl<'a> GhostPostsApi<'a> {
         builder.merge_with(&serde_json::to_value(partial)?);
 
         let response = self
-            .make_request("POST", "posts", Some(&builder.build()))
+            .make_request(
+                "POST",
+                self.resource.name(),
+                Some(&builder.build(self.resource.name())),
+            )
             .await?;
 
         let data: PostsResponse = response.json().await?;
-        Ok(data.posts.into_iter().next().unwrap())
+        Ok(self.tag(data.posts.into_iter().next().unwrap()))
     }
 
     pub async fn delete(&self, post_id: &str) -> Result<(), error::GhostError> {
         let _response = self
-            .make_request("DELETE", &format!("posts/{}", post_id), None)
+            .make_request(
+                "DELETE",
+                &format!("{}/{}", self.resource.name(), post_id),
+                None,
+            )
             .await?;
 
         Ok(())

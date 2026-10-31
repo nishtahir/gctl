@@ -35,6 +35,8 @@ pub struct RenderedPost {
 struct PulledFrontMatter<'a> {
     title: &'a str,
     slug: &'a str,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    kind: Option<&'a str>,
     status: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     date: Option<&'a str>,
@@ -81,6 +83,7 @@ pub fn render_post(post: &Post) -> Result<Option<RenderedPost>, GctlCliError> {
     let front_matter = PulledFrontMatter {
         title: post.title.as_deref().unwrap_or_default(),
         slug: post.slug.as_deref().unwrap_or_default(),
+        kind: post.page.then_some("page"),
         // Emailed posts are published posts.
         status: match post.status.as_deref() {
             Some("sent") | None => "published",
@@ -183,6 +186,7 @@ fn front_matter_agrees(local: &FrontMatter, remote: &FrontMatter) -> bool {
     same(&local.id, &remote.id)
         && same(&local.title, &remote.title)
         && same(&local.slug, &remote.slug)
+        && same(&local.kind, &remote.kind)
         && same(&local.description, &remote.description)
         && same(&local.feature_image, &remote.feature_image)
         && same(&local.featured, &remote.featured)
@@ -236,7 +240,11 @@ impl<'a> PullCommandHandler<'a> {
                 limit: args.limit,
                 ..PostFilter::default()
             };
-            self.api.posts().browse(&filter).await?
+            let mut posts = self.api.posts().browse(&filter).await?;
+            if args.pages {
+                posts.extend(self.api.pages().browse(&filter).await?);
+            }
+            posts
         };
         debug!("Found {} posts", posts.len());
 
@@ -400,6 +408,16 @@ mod test {
     fn renders_a_full_post() {
         let rendered = render_post(&post(Some(body()))).unwrap().unwrap();
         insta::assert_snapshot!(format!("{}\nlossy: {:?}", rendered.file, rendered.lossy));
+    }
+
+    #[test]
+    fn pages_say_so_in_their_front_matter() {
+        let mut page = post(Some(lexical(json!([]))));
+        page.page = true;
+        let rendered = render_post(&page).unwrap().unwrap().file;
+        let parsed = gctl_markdown::parse(&rendered).unwrap();
+        assert_eq!(parsed.front_matter.kind.as_deref(), Some("page"));
+        insta::assert_snapshot!(rendered);
     }
 
     #[test]

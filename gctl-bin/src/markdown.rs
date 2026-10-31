@@ -11,6 +11,8 @@ use crate::error::GctlCliError;
 /// A content file ready to publish.
 pub struct CompiledPost {
     pub post: Post,
+    /// Whether the file is a Ghost page (`type: page`) rather than a post.
+    pub page: bool,
     /// Content kinds the file was pulled with approximations for.
     pub lossy: Vec<String>,
 }
@@ -80,9 +82,19 @@ fn compile_at(
             &mut include_loader(source.root),
         )?;
     }
+    let page = match document.front_matter.kind.as_deref() {
+        None | Some("post") => false,
+        Some("page") => true,
+        Some(other) => {
+            return Err(GctlCliError::Parse(format!(
+                "invalid `type` '{other}': expected post or page"
+            )))
+        }
+    };
     let post = to_post(&document, now)?;
     Ok(CompiledPost {
         post,
+        page,
         lossy: document.front_matter.lossy.clone(),
     })
 }
@@ -256,6 +268,20 @@ mod test {
         .map(|src| (*src, lexical.contains(src)))
         .collect();
         insta::assert_debug_snapshot!((compiled.post.feature_image, srcs));
+    }
+
+    #[test]
+    fn type_chooses_between_posts_and_pages() {
+        let kinds: Vec<_> = ["", "type: post", "type: page", "type: article"]
+            .iter()
+            .map(|fm| {
+                let result = compile_markdown(&format!("---\ntitle: T\n{fm}\n---\n"), None)
+                    .map(|compiled| compiled.page)
+                    .map_err(|e| e.to_string());
+                (*fm, result)
+            })
+            .collect();
+        insta::assert_debug_snapshot!(kinds);
     }
 
     #[test]

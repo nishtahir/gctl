@@ -61,7 +61,9 @@ impl<'a> StatusCommandHandler<'a> {
         // Only a complete picture of the local files can say what is remote only.
         if !args.no_remote && failures == 0 && root.is_dir() {
             info!("Fetching posts...");
-            for post in self.api.posts().browse(&PostFilter::default()).await? {
+            let mut remote = self.api.posts().browse(&PostFilter::default()).await?;
+            remote.extend(self.api.pages().browse(&PostFilter::default()).await?);
+            for post in remote {
                 if post.id.as_ref().is_some_and(|id| seen.contains(id)) {
                     continue;
                 }

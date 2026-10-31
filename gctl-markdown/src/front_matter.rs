@@ -15,6 +15,9 @@ pub struct FrontMatter {
     pub id: Option<String>,
     pub title: Option<String>,
     pub slug: Option<String>,
+    /// `post` (the default) or `page`.
+    #[serde(rename = "type")]
+    pub kind: Option<String>,
     #[serde(alias = "publishDate", alias = "publishdate")]
     pub date: Option<String>,
     /// `draft`, `published` or `scheduled`. Takes precedence over `draft`.

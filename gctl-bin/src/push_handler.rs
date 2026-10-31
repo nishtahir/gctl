@@ -177,6 +177,7 @@ impl<'a> PushCommandHandler<'a> {
                 compiled.lossy.join(", ")
             )));
         }
+        let page = compiled.page;
         let mut post = compiled.post;
 
         if post.title.as_deref().is_none_or(|t| t.trim().is_empty()) {
@@ -193,7 +194,7 @@ impl<'a> PushCommandHandler<'a> {
         let recorded_id = post.id.take();
         let existing_id = match &recorded_id {
             Some(id) => Some(id.clone()),
-            None => self.find_by_slug(&slug).await?,
+            None => self.find_by_slug(&slug, page).await?,
         };
 
         // A file that doesn't say is a draft when it creates a post, so
@@ -205,8 +206,14 @@ impl<'a> PushCommandHandler<'a> {
         }
 
         let (outcome, post) = match (existing_id, args.dry_run) {
-            (Some(id), false) => (Outcome::Updated, self.api.posts().edit(&id, &post).await?),
-            (None, false) => (Outcome::Created, self.api.posts().add(&post).await?),
+            (Some(id), false) => (
+                Outcome::Updated,
+                self.api.collection(page).edit(&id, &post).await?,
+            ),
+            (None, false) => (
+                Outcome::Created,
+                self.api.collection(page).add(&post).await?,
+            ),
             (Some(_), true) => (Outcome::Updated, post),
             (None, true) => (Outcome::Created, post),
         };
@@ -228,13 +235,13 @@ impl<'a> PushCommandHandler<'a> {
         })
     }
 
-    async fn find_by_slug(&self, slug: &str) -> Result<Option<String>, GctlCliError> {
+    async fn find_by_slug(&self, slug: &str, page: bool) -> Result<Option<String>, GctlCliError> {
         let filter = PostFilter {
             slug: Some(slug.to_string()),
             limit: Some(1),
             ..PostFilter::default()
         };
-        let posts = self.api.posts().browse(&filter).await?;
+        let posts = self.api.collection(page).browse(&filter).await?;
         Ok(posts.into_iter().next().and_then(|p| p.id))
     }
 }

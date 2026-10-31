@@ -328,8 +328,7 @@ fn split_row(line: &str) -> Vec<String> {
         }
     }
     // A trailing pipe closes the last cell rather than opening another.
-    if cells.len() > 1 && cells.last().is_some_and(|c| c.trim().is_empty()) && line.ends_with('|')
-    {
+    if cells.len() > 1 && cells.last().is_some_and(|c| c.trim().is_empty()) && line.ends_with('|') {
         cells.pop();
     }
     cells

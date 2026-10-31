@@ -350,11 +350,7 @@ fn html_inlines(html: &str) -> Vec<Inline> {
     merge_text(stack.pop().unwrap().1)
 }
 
-fn push_text(
-    stack: &mut [Frame],
-    text: &str,
-    format: u32,
-) {
+fn push_text(stack: &mut [Frame], text: &str, format: u32) {
     if !text.is_empty() {
         stack.last_mut().unwrap().1.push(Inline::Text {
             text: text.to_string(),

@@ -12,8 +12,8 @@ use tracing::{debug, info};
 use crate::cli::PullArgs;
 use crate::error::GctlCliError;
 use crate::markdown::{resolve_includes, Source};
-use crate::post_handler::find_post;
 use crate::output::{format_sync_results, SyncRow};
+use crate::post_handler::find_post;
 use crate::push_handler::{display_name, find_content_files};
 
 #[derive(Builder)]
@@ -68,8 +68,8 @@ pub fn render_post(post: &Post) -> Result<Option<RenderedPost>, GctlCliError> {
     let (Some(id), Some(lexical)) = (post.id.as_deref(), post.lexical.as_deref()) else {
         return Ok(None);
     };
-    let imported = gctl_markdown::from_lexical(lexical)
-        .map_err(|e| GctlCliError::Parse(e.to_string()))?;
+    let imported =
+        gctl_markdown::from_lexical(lexical).map_err(|e| GctlCliError::Parse(e.to_string()))?;
     let body = gctl_markdown::to_markdown(&imported.blocks);
 
     let tags: Vec<&str> = post
@@ -98,8 +98,8 @@ pub fn render_post(post: &Post) -> Result<Option<RenderedPost>, GctlCliError> {
         lossy: imported.lossy.iter().map(String::as_str).collect(),
     };
 
-    let yaml = serde_yaml::to_string(&front_matter)
-        .map_err(|e| GctlCliError::Parse(e.to_string()))?;
+    let yaml =
+        serde_yaml::to_string(&front_matter).map_err(|e| GctlCliError::Parse(e.to_string()))?;
     let mut file = format!("---\nid: \"{id}\"\n{yaml}---\n");
     if !body.trim().is_empty() {
         file.push('\n');

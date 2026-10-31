@@ -1,7 +1,6 @@
 debug/
 target/
 node_modules/
-Cargo.lock
 **/*.rs.bk
 *.pdb
 .cursorrules

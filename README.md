@@ -13,8 +13,35 @@ A command-line interface tool for managing Ghost blog content through the Ghost 
 
 ## Installation
 
+### Script
+
+For macOS and Linux (x86_64 and arm64), use the [installation script](.ci/install.sh):
+
 ```bash
-cargo install gctl
+curl -fsSL https://raw.githubusercontent.com/nishtahir/gctl/main/.ci/install.sh | bash
+```
+
+It downloads the latest release to `~/.gctl/bin`, checks its SHA-256 checksum and
+adds that directory to your shell profile. Options, passed after `bash -s --`:
+
+- `--release <tag>`: install a specific release, e.g. `v0.1.0`
+- `--install-dir <dir>`: install somewhere else
+- `--skip-shell`: don't edit your shell profile
+
+Run the script again to upgrade. To uninstall, delete `~/.gctl` and the
+`# gctl` lines it added to your shell profile.
+
+### Manual
+
+Download the binary for your platform from the
+[releases page](https://github.com/nishtahir/gctl/releases) (`gctl-darwin-arm64`,
+`gctl-darwin-amd64`, `gctl-linux-arm64` or `gctl-linux-amd64`), rename it to `gctl`,
+make it executable (`chmod +x gctl`) and move it to a directory on your `PATH`.
+
+### From source
+
+```bash
+cargo install --git https://github.com/nishtahir/gctl gctl
 ```
 
 ## Configuration

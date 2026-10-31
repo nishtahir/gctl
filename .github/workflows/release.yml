@@ -1,0 +1,66 @@
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --locked --workspace
+
+  build:
+    needs: test
+    name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os_name: Linux-aarch64
+            os: ubuntu-22.04
+            target: aarch64-unknown-linux-musl
+            bin: gctl-linux-arm64
+          - os_name: Linux-x86_64
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            bin: gctl-linux-amd64
+          - os_name: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: gctl-darwin-amd64
+          - os_name: macOS-aarch64
+            os: macOS-latest
+            target: aarch64-apple-darwin
+            bin: gctl-darwin-arm64
+        toolchain:
+          - stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v0
+        with:
+          command: "build"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args: "--locked --release"
+          strip: true
+      - name: Rename binary
+        run: mv target/${{ matrix.platform.target }}/release/gctl ${{ matrix.platform.bin }}
+      - name: Generate SHA-256
+        run: shasum -a 256 ${{ matrix.platform.bin }} > ${{ matrix.platform.bin }}.sha256
+      - name: Release binary and SHA-256 checksum to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ matrix.platform.bin }}
+            ${{ matrix.platform.bin }}.sha256

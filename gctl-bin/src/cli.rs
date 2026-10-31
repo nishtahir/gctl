@@ -7,7 +7,7 @@ pub enum GctlLogLevel {
 }
 
 #[derive(Parser)]
-#[command(name = "gctl")]
+#[command(name = "gctl", version, disable_version_flag = true)]
 #[command(about = "A Ghost CLI tool", long_about = None)]
 pub struct GctlCli {
     #[command(subcommand)]
@@ -28,6 +28,9 @@ pub struct GctlCli {
     pub verbose: bool,
     #[arg(short = 'V', long, global = true)]
     pub very_verbose: bool,
+    /// Print version (`-V` is taken by --very-verbose)
+    #[arg(long, action = clap::ArgAction::Version)]
+    version: Option<bool>,
 }
 
 impl GctlCli {

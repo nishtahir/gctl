@@ -1,4 +1,5 @@
 use crate::auth_handler::AuthCommandHandler;
+use crate::diff_handler::DiffCommandHandler;
 use crate::cli::{GctlCli, GctlCommands};
 use crate::config::StoredConfig;
 use crate::error::GctlCliError;
@@ -16,6 +17,7 @@ use crate::log::setup_logging;
 mod auth_handler;
 mod cli;
 mod config;
+mod diff_handler;
 mod error;
 mod log;
 mod markdown;
@@ -68,6 +70,13 @@ async fn run() -> Result<(), GctlCliError> {
         }
         GctlCommands::Push(args) => {
             PushCommandHandler::builder()
+                .api(&api)
+                .build()
+                .handle_command(args)
+                .await?;
+        }
+        GctlCommands::Diff(args) => {
+            DiffCommandHandler::builder()
                 .api(&api)
                 .build()
                 .handle_command(args)

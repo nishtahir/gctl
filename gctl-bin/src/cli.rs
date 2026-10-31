@@ -88,6 +88,17 @@ approximated and listed in the file's `lossy:` front matter. `gctl push` refuses
 such files until you review them and remove that line."
     )]
     Pull(PullArgs),
+    #[command(
+        about = "Show how local markdown files differ from their posts on Ghost",
+        long_about = "Compares each markdown file with the post it maps to (by id, or by slug \
+when the file has no id) and prints a diff of the file against how `gctl pull` \
+would write the post. Lines starting with `+` are in your file and would be \
+pushed; lines starting with `-` are on Ghost.\n\n\
+Formatting that markdown ignores is not a difference. Files that use includes or \
+injection files are compared after those are resolved, but the diff shows the \
+file as written."
+    )]
+    Diff(DiffArgs),
 }
 
 #[derive(Args)]
@@ -113,6 +124,21 @@ pub struct PushArgs {
         help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter)"
     )]
     pub force: bool,
+}
+
+#[derive(Args)]
+pub struct DiffArgs {
+    #[arg(
+        default_value = "content",
+        help = "Markdown file or directory of markdown files"
+    )]
+    pub path: String,
+    #[arg(
+        long,
+        value_name = "DIR",
+        help = "Directory `{{< include >}}` may read from (default: the directory being compared)"
+    )]
+    pub include_root: Option<String>,
 }
 
 #[derive(Args)]

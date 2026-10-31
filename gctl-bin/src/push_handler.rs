@@ -191,7 +191,7 @@ fn save_id(file: &Path, content: &str, id: &str) -> std::io::Result<()> {
 }
 
 /// `content/posts/hello.md` -> `hello`; `content/hello/index.md` -> `hello`.
-fn slug_from_path(file: &Path) -> String {
+pub(crate) fn slug_from_path(file: &Path) -> String {
     let stem = file
         .file_stem()
         .and_then(|s| s.to_str())

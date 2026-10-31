@@ -1,0 +1,13 @@
+---
+source: gctl-bin/src/diff_handler.rs
+expression: "(same, edited, skipped)"
+---
+(
+    Same,
+    Differs(
+        "--- ghost\n+++ local\n@@ -5,4 +5,4 @@\n status: draft\n ---\n \n-Hello world.\n+Hello there.\n",
+    ),
+    Skipped(
+        "no Lexical content on Ghost",
+    ),
+)

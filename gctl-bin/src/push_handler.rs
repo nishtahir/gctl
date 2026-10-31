@@ -13,10 +13,18 @@ use crate::error::GctlCliError;
 use crate::images::ImageStore;
 use crate::markdown::{compile_markdown_with, Source};
 use crate::output::{format_sync_results, SyncRow};
+use crate::pull_handler::{decide, render_post, Action};
+use crate::state::SyncState;
 
 #[derive(Builder)]
 pub struct PushCommandHandler<'a> {
     api: &'a GhostContentApi<'a>,
+}
+
+/// Records kept next to the posts between runs.
+struct Stores<'a> {
+    images: &'a mut ImageStore,
+    state: &'a mut SyncState,
 }
 
 enum Outcome {
@@ -58,10 +66,20 @@ impl<'a> PushCommandHandler<'a> {
             include_root_parent(&root)
         };
         let mut images = ImageStore::load(&cache_dir, self.api.site_url().as_str());
+        let mut state = SyncState::load(&cache_dir, self.api.site_url().as_str());
 
         if !args.watch {
             return self
-                .push_files(&files, &root, &include_root, &mut images, &args)
+                .push_files(
+                    &files,
+                    &root,
+                    &include_root,
+                    &mut Stores {
+                        images: &mut images,
+                        state: &mut state,
+                    },
+                    &args,
+                )
                 .await;
         }
 
@@ -71,7 +89,16 @@ impl<'a> PushCommandHandler<'a> {
             root.display()
         );
         if let Err(err) = self
-            .push_files(&files, &root, &include_root, &mut images, &args)
+            .push_files(
+                &files,
+                &root,
+                &include_root,
+                &mut Stores {
+                    images: &mut images,
+                    state: &mut state,
+                },
+                &args,
+            )
             .await
         {
             eprintln!("{}", style(err).red());
@@ -87,7 +114,16 @@ impl<'a> PushCommandHandler<'a> {
             // Give an editor time to finish writing before reading the file.
             tokio::time::sleep(std::time::Duration::from_millis(200)).await;
             if let Err(err) = self
-                .push_files(&changed, &root, &include_root, &mut images, &args)
+                .push_files(
+                    &changed,
+                    &root,
+                    &include_root,
+                    &mut Stores {
+                        images: &mut images,
+                        state: &mut state,
+                    },
+                    &args,
+                )
                 .await
             {
                 eprintln!("{}", style(err).red());
@@ -103,7 +139,7 @@ impl<'a> PushCommandHandler<'a> {
         files: &[PathBuf],
         root: &Path,
         include_root: &Path,
-        images: &mut ImageStore,
+        stores: &mut Stores<'_>,
         args: &PushArgs,
     ) -> Result<(), GctlCliError> {
         let mut rows = Vec::new();
@@ -111,7 +147,7 @@ impl<'a> PushCommandHandler<'a> {
         for file in files {
             let name = display_name(root, file);
             debug!("Pushing {}", name);
-            match self.push_file(file, include_root, images, args).await {
+            match self.push_file(file, include_root, stores, args).await {
                 Ok(Pushed {
                     outcome,
                     post,
@@ -141,8 +177,11 @@ impl<'a> PushCommandHandler<'a> {
         }
 
         // Uploads already happened, so keep track of them even if some files failed.
-        if let Err(err) = images.save() {
+        if let Err(err) = stores.images.save() {
             tracing::warn!("could not save {}: {err}", crate::images::CACHE_FILE);
+        }
+        if let Err(err) = stores.state.save() {
+            tracing::warn!("could not save {}: {err}", crate::state::STATE_FILE);
         }
         format_sync_results(rows, args.json)?;
 
@@ -159,7 +198,7 @@ impl<'a> PushCommandHandler<'a> {
         &self,
         file: &Path,
         include_root: &Path,
-        images: &mut ImageStore,
+        stores: &mut Stores<'_>,
         args: &PushArgs,
     ) -> Result<Pushed, GctlCliError> {
         let content = fs::read_to_string(file)?;
@@ -167,7 +206,8 @@ impl<'a> PushCommandHandler<'a> {
             file,
             root: include_root,
         };
-        let uploaded = images
+        let uploaded = stores
+            .images
             .upload_for(self.api, file, &content, args.dry_run)
             .await?;
         let compiled = compile_markdown_with(&content, Some(&source), &uploaded)?;
@@ -205,6 +245,11 @@ impl<'a> PushCommandHandler<'a> {
             post.status = Some("draft".into());
         }
 
+        if let (Some(id), false) = (&existing_id, args.force) {
+            self.ensure_unchanged_on_ghost(id, page, &content, &source, stores.state)
+                .await?;
+        }
+
         let (outcome, post) = match (existing_id, args.dry_run) {
             (Some(id), false) => (
                 Outcome::Updated,
@@ -218,6 +263,11 @@ impl<'a> PushCommandHandler<'a> {
             (None, true) => (Outcome::Created, post),
         };
         info!("{} {}", style("Pushed").green(), style(&slug).yellow());
+        if !args.dry_run {
+            stores
+                .state
+                .record(post.id.as_deref(), post.updated_at.as_deref());
+        }
 
         let warning = match post.id.as_deref() {
             Some(id) if !args.dry_run && recorded_id.as_deref() != Some(id) => {
@@ -233,6 +283,39 @@ impl<'a> PushCommandHandler<'a> {
             post,
             warning,
         })
+    }
+
+    /// Refuses to overwrite a post that was edited on Ghost since it was last
+    /// pulled or pushed, unless the file already says what the post says.
+    async fn ensure_unchanged_on_ghost(
+        &self,
+        id: &str,
+        page: bool,
+        content: &str,
+        source: &Source<'_>,
+        state: &mut SyncState,
+    ) -> Result<(), GctlCliError> {
+        let Some(baseline) = state.get(id) else {
+            return Ok(());
+        };
+        let remote = self.api.collection(page).read(id).await?;
+        if remote.updated_at.as_deref() == Some(baseline) {
+            return Ok(());
+        }
+        let same_content = matches!(
+            render_post(&remote),
+            Ok(Some(rendered))
+                if decide(Some(content), Some(source), &rendered.file, false) == Action::Unchanged
+        );
+        if same_content {
+            state.record(Some(id), remote.updated_at.as_deref());
+            return Ok(());
+        }
+        Err(GctlCliError::Push(format!(
+            "changed on Ghost since it was last pulled or pushed (edited {}). \
+Run `gctl diff` to compare, `gctl pull --force` to take Ghost's version, or push with --force to overwrite it",
+            remote.updated_at.as_deref().unwrap_or("recently")
+        )))
     }
 
     async fn find_by_slug(&self, slug: &str, page: bool) -> Result<Option<String>, GctlCliError> {

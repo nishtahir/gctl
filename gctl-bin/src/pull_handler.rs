@@ -15,6 +15,7 @@ use crate::markdown::{resolve_includes, Source};
 use crate::output::{format_sync_results, SyncRow};
 use crate::post_handler::find_post;
 use crate::push_handler::{display_name, find_content_files};
+use crate::state::SyncState;
 
 #[derive(Builder)]
 pub struct PullCommandHandler<'a> {
@@ -253,6 +254,7 @@ impl<'a> PullCommandHandler<'a> {
         } else {
             HashMap::new()
         };
+        let mut state = SyncState::load(&dir, self.api.site_url().as_str());
         let mut rows = Vec::new();
         let mut conflicts = 0;
 
@@ -319,9 +321,16 @@ impl<'a> PullCommandHandler<'a> {
                 fs::write(&path, &rendered.file)?;
                 info!("{} {}", style("Wrote").green(), path.display());
             }
+            // In sync with Ghost as of this version of the post.
+            if !args.dry_run && !matches!(action, Action::Conflict) {
+                state.record(post.id.as_deref(), post.updated_at.as_deref());
+            }
             rows.push(row(name, label, status, detail));
         }
 
+        if let Err(err) = state.save() {
+            tracing::warn!("could not save {}: {err}", crate::state::STATE_FILE);
+        }
         format_sync_results(rows, args.json)?;
 
         if conflicts > 0 {

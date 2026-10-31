@@ -148,7 +148,7 @@ pub struct PushArgs {
     pub include_root: Option<String>,
     #[arg(
         long,
-        help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter)"
+        help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter), and overwrite posts edited on Ghost since the last pull or push"
     )]
     pub force: bool,
     #[arg(

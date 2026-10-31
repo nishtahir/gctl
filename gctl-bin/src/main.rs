@@ -29,6 +29,7 @@ mod output;
 mod post_handler;
 mod pull_handler;
 mod push_handler;
+mod state;
 mod status_handler;
 
 fn missing_login() -> GctlCliError {

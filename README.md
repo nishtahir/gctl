@@ -239,6 +239,18 @@ well as posts. A file without `type` (or with `type: post`) is a post. A file
 that is a page on Ghost but has no `type: page` would be created as a new
 post, so keep the line.
 
+## Edits made on Ghost
+
+`gctl pull` and `gctl push` remember when each post was last edited on Ghost, in
+`.gctl-state.json` in the content directory. If a post was edited in the Ghost
+editor after that, `gctl push` refuses to overwrite it and reports the file as
+failed, unless the file already matches what is on Ghost. Use `gctl diff` to see
+the difference, `gctl pull --force` to take Ghost's version, or
+`gctl push --force` to overwrite it. A post `gctl` has never pulled or pushed
+here has no record, so its first push goes through.
+
+The file describes this checkout only, so add it to `.gitignore`.
+
 ## Including other files
 
 Reuse content across posts with an include directive on a line of its own:

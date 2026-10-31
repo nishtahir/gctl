@@ -18,6 +18,14 @@ pub struct GctlCli {
     pub ghost_admin_key: Option<String>,
     #[arg(
         long,
+        env = "GCTL_SITE",
+        global = true,
+        value_name = "NAME",
+        help = "Use the credentials saved with `gctl auth login --site NAME`"
+    )]
+    pub site: Option<String>,
+    #[arg(
+        long,
         env = "GHOST_VERSION",
         global = true,
         required = false,
@@ -288,12 +296,22 @@ pub struct PullArgs {
 
 #[derive(Subcommand)]
 pub enum AuthCommands {
-    #[command(about = "Prompt for a Ghost URL and Admin API key and store them locally")]
+    #[command(
+        about = "Prompt for a Ghost URL and Admin API key and store them locally",
+        long_about = "Prompts for a Ghost URL and Admin API key and stores them locally. With \
+--site NAME they are saved under that name, so one machine can use several sites \
+(for example staging and production)."
+    )]
     Login,
-    #[command(about = "Remove stored credentials")]
+    #[command(about = "Remove stored credentials (of one site with --site, else all)")]
     Logout,
-    #[command(about = "Show the stored login")]
+    #[command(about = "Show the stored logins")]
     Status,
+    #[command(about = "Use a saved site when --site isn't given")]
+    Use {
+        #[arg(help = "Name of a site saved with `auth login --site`")]
+        name: String,
+    },
 }
 
 #[derive(Subcommand)]

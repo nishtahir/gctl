@@ -1,0 +1,30 @@
+---
+source: gctl-bin/src/config.rs
+expression: results
+---
+[
+    (
+        "unnamed",
+        "https://plain.test",
+    ),
+    (
+        "named",
+        "https://staging.test",
+    ),
+    (
+        "default",
+        "https://prod.test",
+    ),
+    (
+        "flag beats default",
+        "https://staging.test",
+    ),
+    (
+        "unknown",
+        "Configuration error: No site named `nope`. Known sites: prod, staging. Add one with `gctl auth login --site nope`.",
+    ),
+    (
+        "unknown, none saved",
+        "Configuration error: No site named `nope`. Add it with `gctl auth login --site nope`.",
+    ),
+]

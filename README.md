@@ -84,6 +84,24 @@ directory changes: just the posts that changed, or all of them when a snippet
 or other included file changed. Use it with `--dry-run` to check your edits, or
 keep it running while you write.
 
+## Several sites
+
+Save credentials under a name to switch between sites, for example staging and
+production:
+
+```bash
+gctl auth login --site staging
+gctl auth login --site prod
+gctl --site staging push content/     # or GCTL_SITE=staging
+gctl auth use prod                    # used when --site isn't given
+gctl auth status                      # lists them, * marks the one used by default
+gctl auth logout --site staging
+```
+
+Without `--site` or `auth use`, the login from a plain `gctl auth login` is used,
+as before. `GHOST_URL` and `GHOST_ADMIN_KEY` still override whatever is saved.
+Pull and push keep their records per site, so switching sites doesn't mix them up.
+
 ## Exit codes
 
 | Code | Meaning |

@@ -44,7 +44,7 @@ async fn run() -> Result<(), GctlCliError> {
     setup_logging(cli.log_level());
 
     if let GctlCommands::Auth { command } = cli.command {
-        return AuthCommandHandler.handle_command(command);
+        return AuthCommandHandler { site: cli.site }.handle_command(command);
     }
 
     if let GctlCommands::New(args) = cli.command {
@@ -56,7 +56,7 @@ async fn run() -> Result<(), GctlCliError> {
 
     debug!("Loading configuration...");
     // Flags and environment variables take precedence over stored credentials.
-    let stored = StoredConfig::load()?;
+    let stored = StoredConfig::load()?.site(cli.site.as_deref())?;
     if let GctlCommands::Doctor = cli.command {
         let from_stored = cli.ghost_url.is_none() && cli.ghost_admin_key.is_none();
         return doctor_handler::run(

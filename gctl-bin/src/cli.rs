@@ -131,6 +131,8 @@ pub struct PushArgs {
         help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter)"
     )]
     pub force: bool,
+    #[arg(long, help = "Print machine-readable JSON instead of a table")]
+    pub json: bool,
 }
 
 #[derive(Args)]
@@ -163,6 +165,8 @@ pub struct StatusArgs {
     pub include_root: Option<String>,
     #[arg(long, help = "Don't look for posts on Ghost that have no local file")]
     pub no_remote: bool,
+    #[arg(long, help = "Print machine-readable JSON instead of a table")]
+    pub json: bool,
 }
 
 #[derive(Args)]
@@ -199,6 +203,8 @@ pub struct PullArgs {
     pub force: bool,
     #[arg(long, help = "Show what would be written without changing anything")]
     pub dry_run: bool,
+    #[arg(long, help = "Print machine-readable JSON instead of a table")]
+    pub json: bool,
 }
 
 #[derive(Subcommand)]
@@ -251,4 +257,6 @@ pub struct PostListArgs {
     pub limit: usize,
     #[arg(long, conflicts_with = "limit", help = "Return every matching post")]
     pub all: bool,
+    #[arg(long, help = "Print machine-readable JSON instead of a table")]
+    pub json: bool,
 }

@@ -85,7 +85,7 @@ impl<'a> PushCommandHandler<'a> {
             }
         }
 
-        format_sync_results(rows);
+        format_sync_results(rows, args.json)?;
 
         if failures > 0 {
             return Err(GctlCliError::Push(format!(

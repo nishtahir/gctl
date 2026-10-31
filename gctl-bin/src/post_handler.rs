@@ -33,9 +33,10 @@ impl<'a> PostCommandHandler<'a> {
         match command {
             PostCommands::List(args) => {
                 info!("Fetching posts...");
+                let json = args.json;
                 let posts = self.api.posts().browse(&args.into()).await?;
                 debug!("Found {} posts", posts.len());
-                format_posts(posts);
+                format_posts(posts, json)?;
             }
         }
         Ok(())

@@ -74,10 +74,10 @@ impl<'a> StatusCommandHandler<'a> {
             }
         }
 
-        if rows.is_empty() {
+        if rows.is_empty() && !args.json {
             println!("Nothing to compare.");
         } else {
-            format_sync_results(rows);
+            format_sync_results(rows, args.json)?;
         }
         if failures > 0 {
             return Err(GctlCliError::Push(format!(

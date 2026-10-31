@@ -313,7 +313,7 @@ impl<'a> PullCommandHandler<'a> {
             rows.push(row(name, label, status, detail));
         }
 
-        format_sync_results(rows);
+        format_sync_results(rows, args.json)?;
 
         if conflicts > 0 {
             return Err(GctlCliError::Push(format!(

@@ -211,6 +211,9 @@ gctl diff content/              # how local files differ from Ghost (+ local, - 
 gctl status content/            # in sync / modified / new / remote only, per file
 ```
 
+`post list`, `push`, `pull` and `status` take `--json` to print JSON instead of a
+table, for scripts and CI.
+
 Each file starts with the post's Ghost `id`, so the next `gctl push` updates
 that post. Only posts with Lexical content are pulled; posts still stored as
 mobiledoc are skipped and listed as such.

@@ -1,5 +1,6 @@
 use console::Term;
 use gctl_ghost::Post;
+use serde::Serialize;
 use tabled::builder::Builder;
 use tabled::settings::peaker::PriorityMax;
 use tabled::settings::{Style, Width};
@@ -24,8 +25,38 @@ fn short_date(date: Option<String>) -> String {
         .unwrap_or_default()
 }
 
-pub fn format_posts(posts: Vec<Post>) {
-    println!("{}", render_posts(posts, terminal_width()));
+pub fn format_posts(posts: Vec<Post>, json: bool) -> Result<(), serde_json::Error> {
+    if json {
+        let summaries: Vec<_> = posts.into_iter().map(PostSummary::from).collect();
+        println!("{}", serde_json::to_string_pretty(&summaries)?);
+    } else {
+        println!("{}", render_posts(posts, terminal_width()));
+    }
+    Ok(())
+}
+
+/// The fields of a post worth listing: no content, so the output stays small.
+#[derive(Serialize)]
+struct PostSummary {
+    id: Option<String>,
+    title: Option<String>,
+    slug: Option<String>,
+    status: Option<String>,
+    updated_at: Option<String>,
+    url: Option<String>,
+}
+
+impl From<Post> for PostSummary {
+    fn from(post: Post) -> Self {
+        PostSummary {
+            id: post.id,
+            title: post.title,
+            slug: post.slug,
+            status: post.status,
+            updated_at: post.updated_at,
+            url: post.url,
+        }
+    }
 }
 
 fn render_posts(posts: Vec<Post>, width: Option<usize>) -> Table {
@@ -67,7 +98,7 @@ fn render_posts(posts: Vec<Post>, width: Option<usize>) -> Table {
     }
 }
 
-#[derive(Tabled)]
+#[derive(Tabled, Serialize)]
 pub struct SyncRow {
     #[tabled(rename = "File")]
     pub file: String,
@@ -79,10 +110,15 @@ pub struct SyncRow {
     pub detail: String,
 }
 
-pub fn format_sync_results(rows: Vec<SyncRow>) {
+pub fn format_sync_results(rows: Vec<SyncRow>, json: bool) -> Result<(), serde_json::Error> {
+    if json {
+        println!("{}", serde_json::to_string_pretty(&rows)?);
+        return Ok(());
+    }
     let mut table = Table::new(rows);
     fit(&mut table, terminal_width());
     println!("{}", table);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -93,6 +129,17 @@ mod test {
         let json = include_str!("../../gctl-ghost/tests/fixtures/browse_posts_response.json");
         let v: serde_json::Value = serde_json::from_str(json).unwrap();
         serde_json::from_value(v["posts"].clone()).unwrap()
+    }
+
+    #[test]
+    fn posts_json_has_only_the_summary_fields() {
+        let summaries: Vec<_> = posts().into_iter().map(PostSummary::from).collect();
+        let json = serde_json::to_value(&summaries).unwrap();
+        let keys: Vec<_> = json[0].as_object().unwrap().keys().cloned().collect();
+        assert_eq!(
+            keys,
+            ["id", "slug", "status", "title", "updated_at", "url"]
+        );
     }
 
     #[test]

@@ -244,6 +244,18 @@ pub enum AuthCommands {
 pub enum PostCommands {
     #[command(about = "List posts (all statuses unless --status is given)")]
     List(PostListArgs),
+    #[command(about = "Open a post in the browser (the live page, or the editor with --admin)")]
+    Open(PostOpenArgs),
+}
+
+#[derive(Args)]
+pub struct PostOpenArgs {
+    #[arg(value_name = "ID|SLUG", help = "Ghost id or slug of the post")]
+    pub post: String,
+    #[arg(long, help = "Open the post in the Ghost editor instead")]
+    pub admin: bool,
+    #[arg(long, help = "Print the address instead of opening it")]
+    pub print: bool,
 }
 
 #[derive(Args)]

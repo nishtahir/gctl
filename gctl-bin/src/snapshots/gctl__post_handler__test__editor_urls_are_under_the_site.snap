@@ -1,0 +1,8 @@
+---
+source: gctl-bin/src/post_handler.rs
+expression: urls
+---
+[
+    "https://example.com/ghost/#/editor/post/abc",
+    "https://example.com/blog/ghost/#/editor/post/abc",
+]

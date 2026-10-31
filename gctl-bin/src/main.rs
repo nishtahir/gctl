@@ -1,12 +1,12 @@
 use crate::auth_handler::AuthCommandHandler;
-use crate::diff_handler::DiffCommandHandler;
-use crate::status_handler::StatusCommandHandler;
 use crate::cli::{GctlCli, GctlCommands};
 use crate::config::StoredConfig;
+use crate::diff_handler::DiffCommandHandler;
 use crate::error::GctlCliError;
 use crate::post_handler::PostCommandHandler;
-use crate::push_handler::PushCommandHandler;
 use crate::pull_handler::PullCommandHandler;
+use crate::push_handler::PushCommandHandler;
+use crate::status_handler::StatusCommandHandler;
 use clap::Parser;
 use console::style;
 use gctl_ghost::{GhostAdminToken, GhostContentApi, GhostVersion};
@@ -25,14 +25,12 @@ mod markdown;
 mod new_handler;
 mod output;
 mod post_handler;
+mod pull_handler;
 mod push_handler;
 mod status_handler;
-mod pull_handler;
 
 fn missing_login() -> GctlCliError {
-    GctlCliError::Config(
-        "No Ghost URL or Admin API key configured. Run `gctl auth login`.".into(),
-    )
+    GctlCliError::Config("No Ghost URL or Admin API key configured. Run `gctl auth login`.".into())
 }
 
 async fn run() -> Result<(), GctlCliError> {

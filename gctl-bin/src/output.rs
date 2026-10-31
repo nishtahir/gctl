@@ -136,10 +136,7 @@ mod test {
         let summaries: Vec<_> = posts().into_iter().map(PostSummary::from).collect();
         let json = serde_json::to_value(&summaries).unwrap();
         let keys: Vec<_> = json[0].as_object().unwrap().keys().cloned().collect();
-        assert_eq!(
-            keys,
-            ["id", "slug", "status", "title", "updated_at", "url"]
-        );
+        assert_eq!(keys, ["id", "slug", "status", "title", "updated_at", "url"]);
     }
 
     #[test]

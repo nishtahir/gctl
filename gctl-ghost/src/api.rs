@@ -34,6 +34,11 @@ impl<'a> GhostContentApi<'a> {
         Ok(GhostContentApi { options, client })
     }
 
+    /// The site's address, as configured.
+    pub fn site_url(&self) -> &Url {
+        &self.options.url
+    }
+
     pub fn posts(&self) -> GhostPostsApi<'_> {
         GhostPostsApi::new(&self.options, &self.client)
     }

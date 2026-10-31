@@ -164,6 +164,14 @@ pub struct PushArgs {
         help = "Keep running and push again whenever a file changes"
     )]
     pub watch: bool,
+    #[arg(
+        long,
+        conflicts_with_all = ["json", "watch"],
+        help = "After pushing, delete posts on Ghost that have no file in the directory (asks first)"
+    )]
+    pub prune: bool,
+    #[arg(long, short = 'y', help = "Don't ask for confirmation (with --prune)")]
+    pub yes: bool,
     #[arg(long, help = "Print machine-readable JSON instead of a table")]
     pub json: bool,
 }

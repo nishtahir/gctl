@@ -13,6 +13,7 @@ use crate::error::GctlCliError;
 use crate::images::ImageStore;
 use crate::markdown::{compile_markdown_with, Source};
 use crate::output::{format_sync_results, SyncRow};
+use crate::prompt::confirm;
 use crate::pull_handler::{decide, render_post, Action};
 use crate::state::SyncState;
 
@@ -34,6 +35,8 @@ enum Outcome {
 
 struct Pushed {
     outcome: Outcome,
+    /// The post's id, when it has one (a new post in a dry run doesn't).
+    id: Option<String>,
     post: Post,
     /// Something worth telling the user that didn't stop the push.
     warning: Option<String>,
@@ -42,6 +45,12 @@ struct Pushed {
 impl<'a> PushCommandHandler<'a> {
     pub async fn handle_command(&self, args: PushArgs) -> Result<(), GctlCliError> {
         let root = PathBuf::from(&args.path);
+        if args.prune && !root.is_dir() {
+            return Err(GctlCliError::Push(
+                "--prune needs a directory: every post without a file in it would be deleted"
+                    .into(),
+            ));
+        }
         let files = find_content_files(&root)?;
         if files.is_empty() {
             return Err(GctlCliError::Push(format!(
@@ -69,7 +78,7 @@ impl<'a> PushCommandHandler<'a> {
         let mut state = SyncState::load(&cache_dir, self.api.site_url().as_str());
 
         if !args.watch {
-            return self
+            let pushed = self
                 .push_files(
                     &files,
                     &root,
@@ -80,7 +89,11 @@ impl<'a> PushCommandHandler<'a> {
                     },
                     &args,
                 )
-                .await;
+                .await?;
+            if args.prune {
+                self.prune(&root, &pushed, &args).await?;
+            }
+            return Ok(());
         }
 
         // Rerun the push whenever something in the directory changes.
@@ -141,18 +154,21 @@ impl<'a> PushCommandHandler<'a> {
         include_root: &Path,
         stores: &mut Stores<'_>,
         args: &PushArgs,
-    ) -> Result<(), GctlCliError> {
+    ) -> Result<Vec<String>, GctlCliError> {
         let mut rows = Vec::new();
         let mut failures = 0;
+        let mut ids = Vec::new();
         for file in files {
             let name = display_name(root, file);
             debug!("Pushing {}", name);
             match self.push_file(file, include_root, stores, args).await {
                 Ok(Pushed {
                     outcome,
+                    id,
                     post,
                     warning,
                 }) => {
+                    ids.extend(id);
                     let url = post.url.unwrap_or_default();
                     rows.push(SyncRow {
                         file: name,
@@ -189,6 +205,74 @@ impl<'a> PushCommandHandler<'a> {
             return Err(GctlCliError::Push(format!(
                 "{failures} of {} file(s) failed to push",
                 files.len()
+            )));
+        }
+        Ok(ids)
+    }
+
+    /// Deletes the posts on Ghost that no file in `root` pushed. Only posts:
+    /// pages are few and often made in Ghost, so they are never pruned.
+    async fn prune(
+        &self,
+        root: &Path,
+        pushed: &[String],
+        args: &PushArgs,
+    ) -> Result<(), GctlCliError> {
+        info!("Looking for posts without a file...");
+        let remote = self.api.posts().browse(&PostFilter::default()).await?;
+        let orphans: Vec<Post> = remote
+            .into_iter()
+            .filter(|post| post.id.as_ref().is_some_and(|id| !pushed.contains(id)))
+            .collect();
+        if orphans.is_empty() {
+            println!(
+                "No posts on Ghost are missing a file in {}.",
+                root.display()
+            );
+            return Ok(());
+        }
+
+        let describe = |post: &Post| {
+            format!(
+                "{} ({}, {})",
+                post.title.as_deref().unwrap_or_default(),
+                post.slug.as_deref().unwrap_or_default(),
+                post.status.as_deref().unwrap_or_default()
+            )
+        };
+        let mut rows = Vec::new();
+        if args.dry_run {
+            for post in &orphans {
+                rows.push(prune_row(post, "would delete", describe(post)));
+            }
+            return Ok(format_sync_results(rows, false)?);
+        }
+
+        println!("These posts on Ghost have no file in {}:", root.display());
+        for post in &orphans {
+            println!("  {}", describe(post));
+        }
+        let question = format!("Permanently delete {} post(s) from Ghost?", orphans.len());
+        if !confirm(&question, args.yes)? {
+            println!("Not deleted.");
+            return Ok(());
+        }
+        let mut failures = 0;
+        for post in &orphans {
+            let id = post.id.as_deref().unwrap_or_default();
+            match self.api.posts().delete(id).await {
+                Ok(()) => rows.push(prune_row(post, "deleted", String::new())),
+                Err(err) => {
+                    failures += 1;
+                    rows.push(prune_row(post, "failed", err.to_string()));
+                }
+            }
+        }
+        format_sync_results(rows, false)?;
+        if failures > 0 {
+            return Err(GctlCliError::Push(format!(
+                "{failures} of {} post(s) could not be deleted",
+                orphans.len()
             )));
         }
         Ok(())
@@ -250,6 +334,7 @@ impl<'a> PushCommandHandler<'a> {
                 .await?;
         }
 
+        let known_id = existing_id.clone();
         let (outcome, post) = match (existing_id, args.dry_run) {
             (Some(id), false) => (
                 Outcome::Updated,
@@ -280,6 +365,7 @@ impl<'a> PushCommandHandler<'a> {
 
         Ok(Pushed {
             outcome,
+            id: post.id.clone().or(known_id),
             post,
             warning,
         })
@@ -385,6 +471,19 @@ fn include_root_parent(file: &Path) -> PathBuf {
     file.parent()
         .filter(|p| !p.as_os_str().is_empty())
         .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
+}
+
+fn prune_row(post: &Post, result: &str, detail: String) -> SyncRow {
+    SyncRow {
+        file: post.slug.clone().unwrap_or_default(),
+        result: result.into(),
+        status: post.status.clone().unwrap_or_default(),
+        detail: if detail.is_empty() {
+            post.title.clone().unwrap_or_default()
+        } else {
+            detail
+        },
+    }
 }
 
 fn outcome_label(outcome: &Outcome, dry_run: bool) -> &'static str {

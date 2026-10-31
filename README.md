@@ -243,6 +243,20 @@ well as posts. A file without `type` (or with `type: post`) is a post. A file
 that is a page on Ghost but has no `type: page` would be created as a new
 post, so keep the line.
 
+## Deleting posts
+
+```bash
+gctl post delete my-post        # by slug or id; asks first, --yes to skip
+gctl push content/ --prune      # after pushing, delete posts that have no file
+gctl push content/ --prune --dry-run
+```
+
+Deleting is permanent on Ghost. Both ask for confirmation, and without a
+terminal (a script, CI) they refuse unless you pass `--yes`. `--prune` needs a
+directory, only runs when every file pushed successfully, and only considers
+posts, never pages. Files whose names start with `_` or `.` are not pushed, so
+their posts count as missing; `--dry-run` shows what would go.
+
 ## Edits made on Ghost
 
 `gctl pull` and `gctl push` remember when each post was last edited on Ghost, in

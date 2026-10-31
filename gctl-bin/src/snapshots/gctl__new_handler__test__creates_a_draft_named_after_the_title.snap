@@ -1,0 +1,8 @@
+---
+source: gctl-bin/src/new_handler.rs
+expression: "(name, file)"
+---
+(
+    "hello-world.md",
+    "---\ntitle: 'Hello: World'\nstatus: draft\n---\n\n",
+)

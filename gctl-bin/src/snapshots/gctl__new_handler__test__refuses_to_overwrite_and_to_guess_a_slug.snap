@@ -1,0 +1,10 @@
+---
+source: gctl-bin/src/new_handler.rs
+expression: results
+---
+[
+    "<dir>/hello.md already exists",
+    "Parse error: the title can't be empty",
+    "Parse error: no slug could be made from the title; pass one with --slug",
+    "ok nihongo.md",
+]

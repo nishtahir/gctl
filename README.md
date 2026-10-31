@@ -203,6 +203,7 @@ markdown files with front matter, so you can edit them locally and push the
 changes back.
 
 ```bash
+gctl new "My post"              # start content/my-post.md as a draft
 gctl pull                       # every post into ./content/<slug>.md
 gctl pull posts --tag rust      # filter like `post list` (--status, --author, --filter, -n)
 gctl pull --id 6891829ae317750001061429 posts   # just one post, by Ghost id

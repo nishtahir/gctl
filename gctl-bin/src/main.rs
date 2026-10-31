@@ -22,6 +22,7 @@ mod diff_handler;
 mod error;
 mod log;
 mod markdown;
+mod new_handler;
 mod output;
 mod post_handler;
 mod push_handler;
@@ -43,6 +44,10 @@ async fn run() -> Result<(), GctlCliError> {
         return AuthCommandHandler.handle_command(command);
     }
 
+    if let GctlCommands::New(args) = cli.command {
+        return new_handler::handle_command(args);
+    }
+
     debug!("Loading configuration...");
     // Flags and environment variables take precedence over stored credentials.
     let stored = StoredConfig::load()?;
@@ -62,7 +67,7 @@ async fn run() -> Result<(), GctlCliError> {
     let api = GhostContentApi::new(url, admin_token, api_version)?;
 
     match cli.command {
-        GctlCommands::Auth { .. } => unreachable!("handled above"),
+        GctlCommands::Auth { .. } | GctlCommands::New(_) => unreachable!("handled above"),
         GctlCommands::Post { command } => {
             PostCommandHandler::builder()
                 .api(&api)

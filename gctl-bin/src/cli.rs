@@ -100,6 +100,13 @@ file as written."
     )]
     Diff(DiffArgs),
     #[command(
+        about = "Create a new draft markdown file",
+        long_about = "Creates `<dir>/<slug>.md` with front matter for a draft. The slug comes \
+from the title unless --slug is given. Nothing is sent to Ghost until you \
+`gctl push` the file."
+    )]
+    New(NewArgs),
+    #[command(
         about = "Summarize which files and posts are in sync, modified, new or remote only",
         long_about = "Lists every markdown file with how it compares to its Ghost post (in sync, \
 modified, or new), plus posts on Ghost that have no local file. Use `gctl diff` \
@@ -148,6 +155,22 @@ pub struct DiffArgs {
         help = "Directory `{{< include >}}` may read from (default: the directory being compared)"
     )]
     pub include_root: Option<String>,
+}
+
+#[derive(Args)]
+pub struct NewArgs {
+    #[arg(help = "Title of the post")]
+    pub title: String,
+    #[arg(
+        long,
+        short = 'd',
+        value_name = "DIR",
+        default_value = "content",
+        help = "Directory to create the file in"
+    )]
+    pub path: String,
+    #[arg(long, help = "Slug and file name (default: made from the title)")]
+    pub slug: Option<String>,
 }
 
 #[derive(Args)]

@@ -1,0 +1,30 @@
+---
+source: gctl-bin/src/doctor_handler.rs
+expression: results
+---
+[
+    (
+        "6891829ae317750001061429:<secret>",
+        [
+            "Ok: Admin API key id: 6891829ae317750001061429",
+        ],
+    ),
+    (
+        "0123456789abcdef0123456789",
+        [
+            "Fail: The Admin API key should look like `id:secret` (it looks like a Content API key; gctl needs the Admin API key)",
+        ],
+    ),
+    (
+        "abc:def",
+        [
+            "Fail: The Admin API key should be a 24 character id and a 64 character secret, separated by `:`; copy it again from Settings > Integrations",
+        ],
+    ),
+    (
+        "6891829ae317750001061429:<secret>:extra",
+        [
+            "Fail: The Admin API key should look like `id:secret`",
+        ],
+    ),
+]

@@ -1,0 +1,22 @@
+---
+source: gctl-bin/src/doctor_handler.rs
+expression: hints
+---
+[
+    (
+        "API error: 401 Unauthorized - ...",
+        "Ghost rejected the key. Check that it is the Admin API key of a custom integration on this site",
+    ),
+    (
+        "API error: 404 Not Found",
+        "Ghost has no Admin API at this address. Check the site address and --ghost-api-version",
+    ),
+    (
+        "HTTP error: error sending request",
+        "Could not reach the site. Check the address and your connection",
+    ),
+    (
+        "weird",
+        "See the message above",
+    ),
+]

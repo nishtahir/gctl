@@ -120,6 +120,13 @@ Exits with an error if any file has an error; warnings alone don't fail."
     )]
     Lint(LintArgs),
     #[command(
+        about = "Check your credentials and that Ghost accepts them",
+        long_about = "Checks the Ghost URL and Admin API key from your flags, environment or stored \
+login for common mistakes (a Content API key instead of the Admin API key, the \
+admin path in the URL), then makes one request to see whether Ghost accepts them."
+    )]
+    Doctor,
+    #[command(
         about = "Summarize which files and posts are in sync, modified, new or remote only",
         long_about = "Lists every markdown file with how it compares to its Ghost post (in sync, \
 modified, or new), plus posts on Ghost that have no local file. Use `gctl diff` \

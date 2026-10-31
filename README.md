@@ -96,6 +96,10 @@ To get your Ghost Admin API key:
 
 The Admin API Key format is: `{key-id}:{key-secret}`
 
+If something isn't working, `gctl doctor` checks the address and key for common mistakes
+(a Content API key instead of the Admin API key, `/ghost` on the end of the URL) and
+makes one request to see whether Ghost accepts them.
+
 ## Development
 
 ### Building from Source

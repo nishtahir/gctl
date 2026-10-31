@@ -1,0 +1,44 @@
+---
+source: gctl-bin/src/doctor_handler.rs
+expression: results
+---
+[
+    (
+        "https://blog.example.com",
+        [
+            "Ok: Site address: https://blog.example.com/",
+        ],
+    ),
+    (
+        "https://blog.example.com/ghost/",
+        [
+            "Ok: Site address: https://blog.example.com/ghost/",
+            "Warn: the address ends in /ghost; use the site's address, without the admin path",
+        ],
+    ),
+    (
+        "http://blog.example.com",
+        [
+            "Ok: Site address: http://blog.example.com/",
+            "Warn: the address uses http, so the API key's token travels unencrypted",
+        ],
+    ),
+    (
+        "http://localhost:2368",
+        [
+            "Ok: Site address: http://localhost:2368/",
+        ],
+    ),
+    (
+        "blog.example.com",
+        [
+            "Fail: `blog.example.com` is not a web address; use the form https://yourblog.ghost.io",
+        ],
+    ),
+    (
+        "ftp://blog.example.com",
+        [
+            "Fail: `ftp://blog.example.com` is not a web address; use the form https://yourblog.ghost.io",
+        ],
+    ),
+]

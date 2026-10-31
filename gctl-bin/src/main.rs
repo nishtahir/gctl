@@ -19,6 +19,7 @@ mod auth_handler;
 mod cli;
 mod config;
 mod diff_handler;
+mod doctor_handler;
 mod error;
 mod images;
 mod lint_handler;
@@ -55,6 +56,16 @@ async fn run() -> Result<(), GctlCliError> {
     debug!("Loading configuration...");
     // Flags and environment variables take precedence over stored credentials.
     let stored = StoredConfig::load()?;
+    if let GctlCommands::Doctor = cli.command {
+        let from_stored = cli.ghost_url.is_none() && cli.ghost_admin_key.is_none();
+        return doctor_handler::run(
+            cli.ghost_url.or(stored.ghost_url),
+            cli.ghost_admin_key.or(stored.ghost_admin_key),
+            &cli.ghost_api_version,
+            from_stored,
+        )
+        .await;
+    }
     let ghost_url = cli
         .ghost_url
         .or(stored.ghost_url)
@@ -71,7 +82,10 @@ async fn run() -> Result<(), GctlCliError> {
     let api = GhostContentApi::new(url, admin_token, api_version)?;
 
     match cli.command {
-        GctlCommands::Auth { .. } | GctlCommands::New(_) | GctlCommands::Lint(_) => {
+        GctlCommands::Auth { .. }
+        | GctlCommands::New(_)
+        | GctlCommands::Lint(_)
+        | GctlCommands::Doctor => {
             unreachable!("handled above")
         }
         GctlCommands::Post { command } => {

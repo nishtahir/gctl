@@ -112,7 +112,7 @@ impl ImageStore {
 
 /// Whether an image `src` names a file next to the post, rather than a URL or
 /// a path on the Ghost site.
-fn is_local(src: &str) -> bool {
+pub fn is_local(src: &str) -> bool {
     let has_scheme = src.split_once(':').is_some_and(|(scheme, _)| {
         scheme
             .chars()
@@ -122,7 +122,7 @@ fn is_local(src: &str) -> bool {
 }
 
 /// `img/a.png?raw=1#x` -> `img/a.png`
-fn path_part(src: &str) -> &str {
+pub fn path_part(src: &str) -> &str {
     src.split(['?', '#']).next().unwrap_or(src)
 }
 

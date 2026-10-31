@@ -1,0 +1,57 @@
+---
+source: gctl-bin/src/lint_handler.rs
+expression: cases
+---
+[
+    (
+        "clean",
+        [],
+    ),
+    (
+        "no title",
+        [
+            "Error: front matter is missing a `title`",
+        ],
+    ),
+    (
+        "bad yaml",
+        [
+            "Error: Invalid front matter: did not find expected key, while parsing a block mapping",
+        ],
+    ),
+    (
+        "missing include",
+        [
+            "Error: Markdown error: Include error: _x.md: cannot read <dir>/_x.md: No such file or directory (os error 2)",
+        ],
+    ),
+    (
+        "images",
+        [
+            "Error: image `img/gone.png` not found",
+            "Error: image `nope.png` not found",
+        ],
+    ),
+    (
+        "contradiction",
+        [
+            "Error: Parse error: front matter `status` and `draft` contradict each other",
+        ],
+    ),
+    (
+        "future date is scheduled",
+        [
+            "Warning: dated in the future (2099-01-01T00:00:00.000Z), so it will be scheduled, not published",
+        ],
+    ),
+    (
+        "scheduled on purpose",
+        [],
+    ),
+    (
+        "lossy",
+        [
+            "Error: pulled with approximations (callout); push refuses it until the `lossy:` line is removed",
+        ],
+    ),
+]

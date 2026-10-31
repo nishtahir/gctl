@@ -110,6 +110,16 @@ from the title unless --slug is given. Nothing is sent to Ghost until you \
     )]
     New(NewArgs),
     #[command(
+        about = "Check markdown files for problems that would fail or surprise a push",
+        long_about = "Checks files without contacting Ghost: front matter that doesn't parse, a \
+missing title, missing includes or images, `status`/`draft`/`date` combinations \
+that contradict each other, files still marked `lossy:`, and slugs used by more \
+than one file. A post marked published with a future date is reported as a \
+warning because Ghost will schedule it instead.\n\n\
+Exits with an error if any file has an error; warnings alone don't fail."
+    )]
+    Lint(LintArgs),
+    #[command(
         about = "Summarize which files and posts are in sync, modified, new or remote only",
         long_about = "Lists every markdown file with how it compares to its Ghost post (in sync, \
 modified, or new), plus posts on Ghost that have no local file. Use `gctl diff` \
@@ -156,6 +166,21 @@ pub struct DiffArgs {
         long,
         value_name = "DIR",
         help = "Directory `{{< include >}}` may read from (default: the directory being compared)"
+    )]
+    pub include_root: Option<String>,
+}
+
+#[derive(Args)]
+pub struct LintArgs {
+    #[arg(
+        default_value = "content",
+        help = "Markdown file or directory of markdown files"
+    )]
+    pub path: String,
+    #[arg(
+        long,
+        value_name = "DIR",
+        help = "Directory `{{< include >}}` may read from (default: the directory being checked)"
     )]
     pub include_root: Option<String>,
 }

@@ -21,6 +21,7 @@ mod config;
 mod diff_handler;
 mod error;
 mod images;
+mod lint_handler;
 mod log;
 mod markdown;
 mod new_handler;
@@ -46,6 +47,9 @@ async fn run() -> Result<(), GctlCliError> {
     if let GctlCommands::New(args) = cli.command {
         return new_handler::handle_command(args);
     }
+    if let GctlCommands::Lint(args) = cli.command {
+        return lint_handler::handle_command(args);
+    }
 
     debug!("Loading configuration...");
     // Flags and environment variables take precedence over stored credentials.
@@ -66,7 +70,9 @@ async fn run() -> Result<(), GctlCliError> {
     let api = GhostContentApi::new(url, admin_token, api_version)?;
 
     match cli.command {
-        GctlCommands::Auth { .. } | GctlCommands::New(_) => unreachable!("handled above"),
+        GctlCommands::Auth { .. } | GctlCommands::New(_) | GctlCommands::Lint(_) => {
+            unreachable!("handled above")
+        }
         GctlCommands::Post { command } => {
             PostCommandHandler::builder()
                 .api(&api)

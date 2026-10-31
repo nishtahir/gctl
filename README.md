@@ -261,6 +261,7 @@ gctl pull posts --tag rust      # filter like `post list` (--status, --author, -
 gctl pull --id 6891829ae317750001061429 posts   # just one post, by Ghost id
 gctl pull --slug hello-world posts              # or by slug
 gctl pull --dry-run             # show what would be written
+gctl lint content/              # check files for problems before pushing
 gctl diff content/              # how local files differ from Ghost (+ local, - Ghost)
 gctl status content/            # in sync / modified / new / remote only, per file
 ```

@@ -8,7 +8,7 @@ use console::style;
 use gctl_ghost::{GhostContentApi, Post, PostFilter};
 use tracing::{debug, info};
 
-use crate::cli::PushArgs;
+use crate::cli::{PushArgs, DEFAULT_DIR};
 use crate::error::GctlCliError;
 use crate::images::ImageStore;
 use crate::markdown::{compile_markdown_with, Source};
@@ -44,7 +44,7 @@ struct Pushed {
 
 impl<'a> PushCommandHandler<'a> {
     pub async fn handle_command(&self, args: PushArgs) -> Result<(), GctlCliError> {
-        let root = PathBuf::from(&args.path);
+        let root = PathBuf::from(args.path.as_deref().unwrap_or(DEFAULT_DIR));
         if args.prune && !root.is_dir() {
             return Err(GctlCliError::Push(
                 "--prune needs a directory: every post without a file in it would be deleted"

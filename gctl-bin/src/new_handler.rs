@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use console::style;
 use serde::Serialize;
 
-use crate::cli::NewArgs;
+use crate::cli::{NewArgs, DEFAULT_DIR};
 use crate::error::GctlCliError;
 use crate::push_handler::slugify;
 
@@ -49,7 +49,11 @@ fn create(dir: &Path, title: &str, slug: Option<&str>) -> Result<PathBuf, GctlCl
 }
 
 pub fn handle_command(args: NewArgs) -> Result<(), GctlCliError> {
-    let path = create(Path::new(&args.path), &args.title, args.slug.as_deref())?;
+    let path = create(
+        Path::new(args.path.as_deref().unwrap_or(DEFAULT_DIR)),
+        &args.title,
+        args.slug.as_deref(),
+    )?;
     println!("{} {}", style("Created").green(), path.display());
     Ok(())
 }

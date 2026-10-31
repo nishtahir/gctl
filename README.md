@@ -84,6 +84,20 @@ directory changes: just the posts that changed, or all of them when a snippet
 or other included file changed. Use it with `--dry-run` to check your edits, or
 keep it running while you write.
 
+## Project file
+
+A `gctl.toml` in your project (or any parent of the directory you run `gctl` in)
+sets defaults so you don't repeat them on every command:
+
+```toml
+site = "staging"          # as saved with `gctl auth login --site staging`
+path = "posts"            # where markdown files live (default: content)
+include_root = "shared"   # where {{< include >}} may read from
+```
+
+Paths are relative to the file. Anything given on the command line (or in
+`GCTL_SITE`) wins. Unknown keys are an error, so typos don't go unnoticed.
+
 ## Several sites
 
 Save credentials under a name to switch between sites, for example staging and

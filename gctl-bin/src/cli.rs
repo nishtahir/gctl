@@ -1,5 +1,8 @@
 use clap::{Args, Parser, Subcommand};
 
+/// Where content lives when neither the command line nor `gctl.toml` says.
+pub const DEFAULT_DIR: &str = "content";
+
 pub enum GctlLogLevel {
     Normal,
     Verbose,
@@ -145,11 +148,8 @@ to see what changed."
 
 #[derive(Args)]
 pub struct PushArgs {
-    #[arg(
-        default_value = "content",
-        help = "Markdown file or directory of markdown files"
-    )]
-    pub path: String,
+    #[arg(help = "Markdown file or directory of markdown files [default: content]")]
+    pub path: Option<String>,
     #[arg(
         long,
         help = "Show what would be created or updated without changing anything"
@@ -186,11 +186,8 @@ pub struct PushArgs {
 
 #[derive(Args)]
 pub struct DiffArgs {
-    #[arg(
-        default_value = "content",
-        help = "Markdown file or directory of markdown files"
-    )]
-    pub path: String,
+    #[arg(help = "Markdown file or directory of markdown files [default: content]")]
+    pub path: Option<String>,
     #[arg(
         long,
         value_name = "DIR",
@@ -201,11 +198,8 @@ pub struct DiffArgs {
 
 #[derive(Args)]
 pub struct LintArgs {
-    #[arg(
-        default_value = "content",
-        help = "Markdown file or directory of markdown files"
-    )]
-    pub path: String,
+    #[arg(help = "Markdown file or directory of markdown files [default: content]")]
+    pub path: Option<String>,
     #[arg(
         long,
         value_name = "DIR",
@@ -222,21 +216,17 @@ pub struct NewArgs {
         long,
         short = 'd',
         value_name = "DIR",
-        default_value = "content",
-        help = "Directory to create the file in"
+        help = "Directory to create the file in [default: content]"
     )]
-    pub path: String,
+    pub path: Option<String>,
     #[arg(long, help = "Slug and file name (default: made from the title)")]
     pub slug: Option<String>,
 }
 
 #[derive(Args)]
 pub struct StatusArgs {
-    #[arg(
-        default_value = "content",
-        help = "Markdown file or directory of markdown files"
-    )]
-    pub path: String,
+    #[arg(help = "Markdown file or directory of markdown files [default: content]")]
+    pub path: Option<String>,
     #[arg(
         long,
         value_name = "DIR",
@@ -251,11 +241,8 @@ pub struct StatusArgs {
 
 #[derive(Args)]
 pub struct PullArgs {
-    #[arg(
-        default_value = "content",
-        help = "Directory to write markdown files to"
-    )]
-    pub path: String,
+    #[arg(help = "Directory to write markdown files to [default: content]")]
+    pub path: Option<String>,
     #[arg(
         long,
         visible_alias = "slug",

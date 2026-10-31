@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use console::style;
 
-use crate::cli::LintArgs;
+use crate::cli::{LintArgs, DEFAULT_DIR};
 use crate::diff_handler::include_root_for;
 use crate::error::GctlCliError;
 use crate::images::{is_local, path_part};
@@ -103,7 +103,7 @@ fn lint_file(file: &Path, include_root: &Path) -> (Vec<Issue>, Option<String>) {
 }
 
 pub fn handle_command(args: LintArgs) -> Result<(), GctlCliError> {
-    let root = PathBuf::from(&args.path);
+    let root = PathBuf::from(args.path.as_deref().unwrap_or(DEFAULT_DIR));
     let files = find_content_files(&root)?;
     if files.is_empty() {
         return Err(GctlCliError::Push(format!(

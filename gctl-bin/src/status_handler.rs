@@ -5,7 +5,7 @@ use bon::Builder;
 use gctl_ghost::{GhostContentApi, PostFilter};
 use tracing::info;
 
-use crate::cli::StatusArgs;
+use crate::cli::{StatusArgs, DEFAULT_DIR};
 use crate::diff_handler::{compare_file, include_root_for, Compared, Comparison};
 use crate::error::GctlCliError;
 use crate::output::{format_sync_results, SyncRow};
@@ -27,7 +27,7 @@ fn row(file: String, result: &str, status: String, detail: String) -> SyncRow {
 
 impl<'a> StatusCommandHandler<'a> {
     pub async fn handle_command(&self, args: StatusArgs) -> Result<(), GctlCliError> {
-        let root = PathBuf::from(&args.path);
+        let root = PathBuf::from(args.path.as_deref().unwrap_or(DEFAULT_DIR));
         let files = find_content_files(&root)?;
         let include_root = include_root_for(&root, args.include_root.as_deref());
 

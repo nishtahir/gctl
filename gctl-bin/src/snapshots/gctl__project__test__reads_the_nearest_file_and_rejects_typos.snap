@@ -1,0 +1,20 @@
+---
+source: gctl-bin/src/project.rs
+expression: "(relative, nothing, typo)"
+---
+(
+    (
+        true,
+        ProjectConfig {
+            site: Some(
+                "prod",
+            ),
+            path: Some(
+                "posts",
+            ),
+            include_root: None,
+        },
+    ),
+    None,
+    "Configuration error: <dir>/gctl.toml: unknown field `sight`, expected one of `site`, `path`, `include_root`",
+)

@@ -27,5 +27,6 @@ dirs = "5"
 similar = "2"
 open = "5"
 sha2 = "0.10"
+toml = "0.8"
 [dev-dependencies]
 insta = {workspace = true}

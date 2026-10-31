@@ -1,0 +1,36 @@
+---
+source: gctl-bin/src/project.rs
+expression: results
+---
+[
+    (
+        Some(
+            "/project/posts",
+        ),
+        Some(
+            "/project/shared",
+        ),
+    ),
+    (
+        Some(
+            "other",
+        ),
+        Some(
+            "/project/shared",
+        ),
+    ),
+    (
+        Some(
+            "/project/posts",
+        ),
+        Some(
+            "mine",
+        ),
+    ),
+    (
+        Some(
+            "/project/posts",
+        ),
+        None,
+    ),
+]

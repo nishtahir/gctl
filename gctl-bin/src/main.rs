@@ -4,6 +4,7 @@ use crate::config::StoredConfig;
 use crate::diff_handler::DiffCommandHandler;
 use crate::error::GctlCliError;
 use crate::post_handler::PostCommandHandler;
+use crate::project::ProjectConfig;
 use crate::pull_handler::PullCommandHandler;
 use crate::push_handler::PushCommandHandler;
 use crate::status_handler::StatusCommandHandler;
@@ -28,6 +29,7 @@ mod markdown;
 mod new_handler;
 mod output;
 mod post_handler;
+mod project;
 mod prompt;
 mod pull_handler;
 mod push_handler;
@@ -40,8 +42,15 @@ fn missing_login() -> GctlCliError {
 
 async fn run() -> Result<(), GctlCliError> {
     dotenvy::dotenv().ok();
-    let cli = GctlCli::parse();
+    let mut cli = GctlCli::parse();
     setup_logging(cli.log_level());
+
+    // gctl.toml fills in what the command line leaves out.
+    if let Some((dir, project)) = ProjectConfig::find(&std::env::current_dir()?)? {
+        debug!("Using {}", dir.join(project::PROJECT_FILE).display());
+        project.apply(&dir, &mut cli.command);
+        cli.site = cli.site.or(project.site);
+    }
 
     if let GctlCommands::Auth { command } = cli.command {
         return AuthCommandHandler { site: cli.site }.handle_command(command);

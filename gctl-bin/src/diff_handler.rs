@@ -7,7 +7,7 @@ use gctl_ghost::{GhostContentApi, Post, PostFilter};
 use similar::TextDiff;
 use tracing::info;
 
-use crate::cli::DiffArgs;
+use crate::cli::{DiffArgs, DEFAULT_DIR};
 use crate::error::GctlCliError;
 use crate::markdown::Source;
 use crate::pull_handler::{decide, render_post, Action};
@@ -126,7 +126,7 @@ pub(crate) async fn compare_file(
 
 impl<'a> DiffCommandHandler<'a> {
     pub async fn handle_command(&self, args: DiffArgs) -> Result<(), GctlCliError> {
-        let root = PathBuf::from(&args.path);
+        let root = PathBuf::from(args.path.as_deref().unwrap_or(DEFAULT_DIR));
         let files = find_content_files(&root)?;
         if files.is_empty() {
             return Err(GctlCliError::Push(format!(

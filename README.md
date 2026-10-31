@@ -84,6 +84,17 @@ directory changes: just the posts that changed, or all of them when a snippet
 or other included file changed. Use it with `--dry-run` to check your edits, or
 keep it running while you write.
 
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | An error: a file failed, Ghost rejected a request, bad configuration |
+| 2 | Bad command line usage |
+| 3 | Conflict: `pull` found files that differ from Ghost, or `push` found posts edited on Ghost, and left them alone |
+
+So a script can tell "go and look at the differences" from "something is broken".
+
 ## Ghost Admin API Key
 
 To get your Ghost Admin API key:

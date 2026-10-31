@@ -334,7 +334,7 @@ impl<'a> PullCommandHandler<'a> {
         format_sync_results(rows, args.json)?;
 
         if conflicts > 0 {
-            return Err(GctlCliError::Push(format!(
+            return Err(GctlCliError::Conflict(format!(
                 "{conflicts} file(s) differ from Ghost and were left alone"
             )));
         }

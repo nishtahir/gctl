@@ -13,8 +13,22 @@ pub enum GctlCliError {
     Markdown(#[from] gctl_markdown::MarkdownError),
     #[error("{0}")]
     Push(String),
+    /// Local and remote content disagree and nothing was overwritten.
+    #[error("{0}")]
+    Conflict(String),
     #[error("Parse error: {0}")]
     Parse(String),
+}
+
+impl GctlCliError {
+    /// The process exit code: 1 for failures, 3 when the only problem is
+    /// content that differs and was left alone. (2 is clap's, for bad usage.)
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            GctlCliError::Conflict(_) => 3,
+            _ => 1,
+        }
+    }
 }
 
 impl From<std::io::Error> for GctlCliError {
@@ -26,5 +40,20 @@ impl From<std::io::Error> for GctlCliError {
 impl From<serde_json::Error> for GctlCliError {
     fn from(err: serde_json::Error) -> Self {
         GctlCliError::Parse(err.to_string())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn conflicts_have_their_own_exit_code() {
+        let codes = [
+            GctlCliError::Conflict("x".into()).exit_code(),
+            GctlCliError::Push("x".into()).exit_code(),
+            GctlCliError::Config("x".into()).exit_code(),
+        ];
+        assert_eq!(codes, [3, 1, 1]);
     }
 }

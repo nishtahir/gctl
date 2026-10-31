@@ -157,6 +157,7 @@ impl<'a> PushCommandHandler<'a> {
     ) -> Result<Vec<String>, GctlCliError> {
         let mut rows = Vec::new();
         let mut failures = 0;
+        let mut conflicts = 0;
         let mut ids = Vec::new();
         for file in files {
             let name = display_name(root, file);
@@ -182,9 +183,11 @@ impl<'a> PushCommandHandler<'a> {
                 }
                 Err(err) => {
                     failures += 1;
+                    let conflict = matches!(err, GctlCliError::Conflict(_));
+                    conflicts += usize::from(conflict);
                     rows.push(SyncRow {
                         file: name,
-                        result: "failed".into(),
+                        result: if conflict { "conflict" } else { "failed" }.into(),
                         status: String::new(),
                         detail: err.to_string(),
                     });
@@ -202,10 +205,13 @@ impl<'a> PushCommandHandler<'a> {
         format_sync_results(rows, args.json)?;
 
         if failures > 0 {
-            return Err(GctlCliError::Push(format!(
-                "{failures} of {} file(s) failed to push",
-                files.len()
-            )));
+            let message = format!("{failures} of {} file(s) failed to push", files.len());
+            // Only conflicts: nothing is broken, Ghost just has something newer.
+            return Err(if conflicts == failures {
+                GctlCliError::Conflict(message)
+            } else {
+                GctlCliError::Push(message)
+            });
         }
         Ok(ids)
     }
@@ -397,7 +403,7 @@ impl<'a> PushCommandHandler<'a> {
             state.record(Some(id), remote.updated_at.as_deref());
             return Ok(());
         }
-        Err(GctlCliError::Push(format!(
+        Err(GctlCliError::Conflict(format!(
             "changed on Ghost since it was last pulled or pushed (edited {}). \
 Run `gctl diff` to compare, `gctl pull --force` to take Ghost's version, or push with --force to overwrite it",
             remote.updated_at.as_deref().unwrap_or("recently")

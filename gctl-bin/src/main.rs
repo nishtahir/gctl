@@ -132,8 +132,9 @@ async fn run() -> Result<(), GctlCliError> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(err) = run().await {
+        let code = err.exit_code();
         error!("{}", style(err).red());
-        process::exit(1);
+        process::exit(code);
     }
     Ok(())
 }

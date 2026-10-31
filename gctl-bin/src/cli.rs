@@ -99,6 +99,13 @@ injection files are compared after those are resolved, but the diff shows the \
 file as written."
     )]
     Diff(DiffArgs),
+    #[command(
+        about = "Summarize which files and posts are in sync, modified, new or remote only",
+        long_about = "Lists every markdown file with how it compares to its Ghost post (in sync, \
+modified, or new), plus posts on Ghost that have no local file. Use `gctl diff` \
+to see what changed."
+    )]
+    Status(StatusArgs),
 }
 
 #[derive(Args)]
@@ -139,6 +146,23 @@ pub struct DiffArgs {
         help = "Directory `{{< include >}}` may read from (default: the directory being compared)"
     )]
     pub include_root: Option<String>,
+}
+
+#[derive(Args)]
+pub struct StatusArgs {
+    #[arg(
+        default_value = "content",
+        help = "Markdown file or directory of markdown files"
+    )]
+    pub path: String,
+    #[arg(
+        long,
+        value_name = "DIR",
+        help = "Directory `{{< include >}}` may read from (default: the directory being compared)"
+    )]
+    pub include_root: Option<String>,
+    #[arg(long, help = "Don't look for posts on Ghost that have no local file")]
+    pub no_remote: bool,
 }
 
 #[derive(Args)]

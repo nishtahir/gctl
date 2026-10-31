@@ -20,7 +20,7 @@ pub struct DiffCommandHandler<'a> {
 
 /// How one local file compares with its post.
 #[derive(Debug, PartialEq, Eq)]
-enum Comparison {
+pub(crate) enum Comparison {
     Same,
     Differs(String),
     /// No post on Ghost for this file; a push would create one.
@@ -61,6 +61,64 @@ fn colored(diff: &str) -> String {
         .join("\n")
 }
 
+/// A local file's comparison, and the id of the post it maps to.
+pub(crate) struct Compared {
+    pub comparison: Comparison,
+    pub post_id: Option<String>,
+    pub status: String,
+}
+
+/// Where `{{< include >}}` may read from: the override, else the directory
+/// being compared (or the folder of a single file).
+pub(crate) fn include_root_for(root: &Path, include_root: Option<&str>) -> PathBuf {
+    match include_root {
+        Some(dir) => PathBuf::from(dir),
+        None if root.is_dir() => root.to_path_buf(),
+        None => root
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .map_or_else(|| PathBuf::from("."), Path::to_path_buf),
+    }
+}
+
+/// Finds the post a file maps to (by id, else slug) and compares them.
+pub(crate) async fn compare_file(
+    api: &GhostContentApi<'_>,
+    file: &Path,
+    include_root: &Path,
+) -> Result<Compared, GctlCliError> {
+    let content = fs::read_to_string(file)?;
+    let front_matter = gctl_markdown::parse(&content)?.front_matter;
+    let post = match front_matter.id {
+        Some(id) => Some(api.posts().read(&id).await?),
+        None => {
+            let slug = front_matter.slug.unwrap_or_else(|| slug_from_path(file));
+            let filter = PostFilter {
+                slug: Some(slug),
+                limit: Some(1),
+                ..PostFilter::default()
+            };
+            api.posts().browse(&filter).await?.into_iter().next()
+        }
+    };
+    let Some(post) = post else {
+        return Ok(Compared {
+            comparison: Comparison::New,
+            post_id: None,
+            status: String::new(),
+        });
+    };
+    let source = Source {
+        file,
+        root: include_root,
+    };
+    Ok(Compared {
+        comparison: compare(&content, &source, &post)?,
+        post_id: post.id.clone(),
+        status: post.status.clone().unwrap_or_default(),
+    })
+}
+
 impl<'a> DiffCommandHandler<'a> {
     pub async fn handle_command(&self, args: DiffArgs) -> Result<(), GctlCliError> {
         let root = PathBuf::from(&args.path);
@@ -71,31 +129,36 @@ impl<'a> DiffCommandHandler<'a> {
                 root.display()
             )));
         }
-        let include_root = match &args.include_root {
-            Some(dir) => PathBuf::from(dir),
-            None if root.is_dir() => root.clone(),
-            None => root
-                .parent()
-                .filter(|p| !p.as_os_str().is_empty())
-                .map_or_else(|| PathBuf::from("."), Path::to_path_buf),
-        };
+        let include_root = include_root_for(&root, args.include_root.as_deref());
 
         info!("Comparing {} file(s)...", files.len());
         let (mut differing, mut failures) = (0, 0);
         for file in &files {
             let name = display_name(&root, file);
-            match self.compare_file(file, &include_root).await {
-                Ok(Comparison::Same) => {}
-                Ok(Comparison::Differs(diff)) => {
+            match compare_file(self.api, file, &include_root).await {
+                Ok(Compared {
+                    comparison: Comparison::Same,
+                    ..
+                }) => {}
+                Ok(Compared {
+                    comparison: Comparison::Differs(diff),
+                    ..
+                }) => {
                     differing += 1;
                     println!("{} {}", style("modified:").yellow(), name);
                     println!("{}\n", colored(&diff));
                 }
-                Ok(Comparison::New) => {
+                Ok(Compared {
+                    comparison: Comparison::New,
+                    ..
+                }) => {
                     differing += 1;
                     println!("{} {}\n", style("new:").green(), name);
                 }
-                Ok(Comparison::Skipped(reason)) => {
+                Ok(Compared {
+                    comparison: Comparison::Skipped(reason),
+                    ..
+                }) => {
                     println!("{} {} ({reason})\n", style("skipped:").dim(), name);
                 }
                 Err(err) => {
@@ -115,35 +178,6 @@ impl<'a> DiffCommandHandler<'a> {
             )));
         }
         Ok(())
-    }
-
-    async fn compare_file(
-        &self,
-        file: &Path,
-        include_root: &Path,
-    ) -> Result<Comparison, GctlCliError> {
-        let content = fs::read_to_string(file)?;
-        let front_matter = gctl_markdown::parse(&content)?.front_matter;
-        let post = match front_matter.id {
-            Some(id) => Some(self.api.posts().read(&id).await?),
-            None => {
-                let slug = front_matter.slug.unwrap_or_else(|| slug_from_path(file));
-                let filter = PostFilter {
-                    slug: Some(slug),
-                    limit: Some(1),
-                    ..PostFilter::default()
-                };
-                self.api.posts().browse(&filter).await?.into_iter().next()
-            }
-        };
-        let Some(post) = post else {
-            return Ok(Comparison::New);
-        };
-        let source = Source {
-            file,
-            root: include_root,
-        };
-        compare(&content, &source, &post)
     }
 }
 

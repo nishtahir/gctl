@@ -124,6 +124,12 @@ pub struct PullArgs {
     pub path: String,
     #[arg(
         long,
+        conflicts_with_all = ["status", "tag", "author", "filter", "limit"],
+        help = "Pull only the post with this Ghost id"
+    )]
+    pub id: Option<String>,
+    #[arg(
+        long,
         help = "Only posts with this status",
         value_parser = ["draft", "published", "scheduled", "sent"]
     )]

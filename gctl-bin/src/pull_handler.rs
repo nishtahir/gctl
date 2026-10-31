@@ -223,16 +223,20 @@ fn files_by_id(dir: &Path) -> HashMap<String, PathBuf> {
 impl<'a> PullCommandHandler<'a> {
     pub async fn handle_command(&self, args: PullArgs) -> Result<(), GctlCliError> {
         let dir = PathBuf::from(&args.path);
-        let filter = PostFilter {
-            status: args.status,
-            tag: args.tag,
-            author: args.author,
-            raw: args.filter,
-            limit: args.limit,
-            ..PostFilter::default()
-        };
         info!("Fetching posts...");
-        let posts = self.api.posts().browse(&filter).await?;
+        let posts = if let Some(id) = &args.id {
+            vec![self.api.posts().read(id).await?]
+        } else {
+            let filter = PostFilter {
+                status: args.status,
+                tag: args.tag,
+                author: args.author,
+                raw: args.filter,
+                limit: args.limit,
+                ..PostFilter::default()
+            };
+            self.api.posts().browse(&filter).await?
+        };
         debug!("Found {} posts", posts.len());
 
         let by_id = if dir.is_dir() {

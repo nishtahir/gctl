@@ -205,6 +205,7 @@ changes back.
 ```bash
 gctl pull                       # every post into ./content/<slug>.md
 gctl pull posts --tag rust      # filter like `post list` (--status, --author, --filter, -n)
+gctl pull --id 6891829ae317750001061429 posts   # just one post, by Ghost id
 gctl pull --dry-run             # show what would be written
 ```
 

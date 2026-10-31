@@ -12,6 +12,7 @@ use tracing::{debug, info};
 use crate::cli::PullArgs;
 use crate::error::GctlCliError;
 use crate::markdown::{resolve_includes, Source};
+use crate::post_handler::find_post;
 use crate::output::{format_sync_results, SyncRow};
 use crate::push_handler::{display_name, find_content_files};
 
@@ -225,7 +226,7 @@ impl<'a> PullCommandHandler<'a> {
         let dir = PathBuf::from(&args.path);
         info!("Fetching posts...");
         let posts = if let Some(id) = &args.id {
-            vec![self.api.posts().read(id).await?]
+            vec![find_post(self.api, id).await?]
         } else {
             let filter = PostFilter {
                 status: args.status,

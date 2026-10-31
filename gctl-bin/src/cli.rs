@@ -201,8 +201,10 @@ pub struct PullArgs {
     pub path: String,
     #[arg(
         long,
+        visible_alias = "slug",
+        value_name = "ID|SLUG",
         conflicts_with_all = ["status", "tag", "author", "filter", "limit"],
-        help = "Pull only the post with this Ghost id"
+        help = "Pull only the post with this Ghost id or slug"
     )]
     pub id: Option<String>,
     #[arg(

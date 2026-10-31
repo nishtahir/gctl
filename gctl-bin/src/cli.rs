@@ -294,6 +294,21 @@ pub enum PostCommands {
     List(PostListArgs),
     #[command(about = "Open a post in the browser (the live page, or the editor with --admin)")]
     Open(PostOpenArgs),
+    #[command(
+        about = "Delete a post or page from Ghost",
+        long_about = "Permanently deletes the post or page from Ghost after asking for confirmation. \
+Local markdown files are not touched; delete the file too, or the next \
+`gctl push` will create the post again."
+    )]
+    Delete(PostDeleteArgs),
+}
+
+#[derive(Args)]
+pub struct PostDeleteArgs {
+    #[arg(value_name = "ID|SLUG", help = "Ghost id or slug of the post")]
+    pub post: String,
+    #[arg(long, short = 'y', help = "Don't ask for confirmation")]
+    pub yes: bool,
 }
 
 #[derive(Args)]

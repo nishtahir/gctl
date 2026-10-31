@@ -28,6 +28,7 @@ mod markdown;
 mod new_handler;
 mod output;
 mod post_handler;
+mod prompt;
 mod pull_handler;
 mod push_handler;
 mod state;

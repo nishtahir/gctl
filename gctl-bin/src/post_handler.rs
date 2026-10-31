@@ -3,9 +3,10 @@ use tracing::{debug, info};
 use url::Url;
 
 use crate::{
-    cli::{PostCommands, PostListArgs, PostOpenArgs},
+    cli::{PostCommands, PostDeleteArgs, PostListArgs, PostOpenArgs},
     error::GctlCliError,
     output::format_posts,
+    prompt::confirm,
 };
 use bon::Builder;
 
@@ -88,12 +89,35 @@ impl<'a> PostCommandHandler<'a> {
                 format_posts(posts, json)?;
             }
             PostCommands::Open(args) => self.open(args).await?,
+            PostCommands::Delete(args) => self.delete(args).await?,
         }
         Ok(())
     }
 }
 
 impl<'a> PostCommandHandler<'a> {
+    async fn delete(&self, args: PostDeleteArgs) -> Result<(), GctlCliError> {
+        let post = find_post(self.api, &args.post).await?;
+        let id = post
+            .id
+            .as_deref()
+            .ok_or_else(|| GctlCliError::Config("The post has no id".into()))?;
+        let kind = if post.page { "page" } else { "post" };
+        let question = format!(
+            "Permanently delete the {kind} '{}' ({}, {})?",
+            post.title.as_deref().unwrap_or_default(),
+            post.slug.as_deref().unwrap_or_default(),
+            post.status.as_deref().unwrap_or_default(),
+        );
+        if !confirm(&question, args.yes)? {
+            println!("Not deleted.");
+            return Ok(());
+        }
+        self.api.collection(post.page).delete(id).await?;
+        println!("Deleted {kind} {id}");
+        Ok(())
+    }
+
     async fn open(&self, args: PostOpenArgs) -> Result<(), GctlCliError> {
         let post = find_post(self.api, &args.post).await?;
         let url = if args.admin {

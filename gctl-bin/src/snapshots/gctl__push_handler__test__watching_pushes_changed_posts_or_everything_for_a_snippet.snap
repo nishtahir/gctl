@@ -1,0 +1,40 @@
+---
+source: gctl-bin/src/push_handler.rs
+expression: "(results, seen)"
+---
+(
+    [
+        (
+            "nothing",
+            [],
+        ),
+        (
+            "one post",
+            [
+                "a.md",
+            ],
+        ),
+        (
+            "two posts",
+            [
+                "a.md",
+                "b.md",
+            ],
+        ),
+        (
+            "a snippet",
+            [
+                "a.md",
+                "b.md",
+            ],
+        ),
+        (
+            "both",
+            [
+                "a.md",
+                "b.md",
+            ],
+        ),
+    ],
+    3,
+)

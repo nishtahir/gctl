@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use bon::Builder;
 use console::style;
@@ -57,15 +59,59 @@ impl<'a> PushCommandHandler<'a> {
         };
         let mut images = ImageStore::load(&cache_dir, self.api.site_url().as_str());
 
-        let mut rows = Vec::new();
-        let mut failures = 0;
-        for file in &files {
-            let name = display_name(&root, file);
-            debug!("Pushing {}", name);
-            match self
-                .push_file(file, &include_root, &mut images, &args)
+        if !args.watch {
+            return self
+                .push_files(&files, &root, &include_root, &mut images, &args)
+                .await;
+        }
+
+        // Rerun the push whenever something in the directory changes.
+        eprintln!(
+            "Watching {} for changes (Ctrl-C to stop)...",
+            root.display()
+        );
+        if let Err(err) = self
+            .push_files(&files, &root, &include_root, &mut images, &args)
+            .await
+        {
+            eprintln!("{}", style(err).red());
+        }
+        let mut seen = snapshot(&root);
+        loop {
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            let now = snapshot(&root);
+            let changed = changed_files(&seen, &now, &root);
+            if changed.is_empty() {
+                continue;
+            }
+            // Give an editor time to finish writing before reading the file.
+            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+            if let Err(err) = self
+                .push_files(&changed, &root, &include_root, &mut images, &args)
                 .await
             {
+                eprintln!("{}", style(err).red());
+            }
+            // Pushing writes post ids back into files; don't push those again.
+            seen = snapshot(&root);
+        }
+    }
+
+    /// Pushes `files` and prints what happened to each.
+    async fn push_files(
+        &self,
+        files: &[PathBuf],
+        root: &Path,
+        include_root: &Path,
+        images: &mut ImageStore,
+        args: &PushArgs,
+    ) -> Result<(), GctlCliError> {
+        let mut rows = Vec::new();
+        let mut failures = 0;
+        for file in files {
+            let name = display_name(root, file);
+            debug!("Pushing {}", name);
+            match self.push_file(file, include_root, images, args).await {
                 Ok(Pushed {
                     outcome,
                     post,
@@ -190,6 +236,57 @@ impl<'a> PushCommandHandler<'a> {
         };
         let posts = self.api.posts().browse(&filter).await?;
         Ok(posts.into_iter().next().and_then(|p| p.id))
+    }
+}
+
+/// Modification times of everything under `root` that isn't hidden. Includes
+/// and injection files count, so editing a snippet is noticed too.
+fn snapshot(root: &Path) -> HashMap<PathBuf, SystemTime> {
+    fn walk(path: &Path, out: &mut HashMap<PathBuf, SystemTime>) {
+        let hidden = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.starts_with('.') && n != "." && n != "..");
+        if hidden {
+            return;
+        }
+        if path.is_dir() {
+            if let Ok(entries) = fs::read_dir(path) {
+                for entry in entries.flatten() {
+                    walk(&entry.path(), out);
+                }
+            }
+        } else if let Some(modified) = fs::metadata(path).ok().and_then(|m| m.modified().ok()) {
+            out.insert(path.to_path_buf(), modified);
+        }
+    }
+    let mut out = HashMap::new();
+    walk(root, &mut out);
+    out
+}
+
+/// The posts to push after `before` became `after`: the posts that changed,
+/// or all of them when something else (a snippet) did.
+fn changed_files(
+    before: &HashMap<PathBuf, SystemTime>,
+    after: &HashMap<PathBuf, SystemTime>,
+    root: &Path,
+) -> Vec<PathBuf> {
+    let changed: Vec<&PathBuf> = after
+        .iter()
+        .filter(|(path, time)| before.get(*path) != Some(time))
+        .map(|(path, _)| path)
+        .collect();
+    if changed.is_empty() {
+        return Vec::new();
+    }
+    let posts = find_content_files(root).unwrap_or_default();
+    if changed.iter().all(|path| posts.contains(path)) {
+        let mut changed: Vec<PathBuf> = changed.into_iter().cloned().collect();
+        changed.sort();
+        changed
+    } else {
+        posts
     }
 }
 
@@ -347,6 +444,53 @@ mod test {
             .collect();
         fs::remove_dir_all(&dir).unwrap();
         insta::assert_debug_snapshot!(found);
+    }
+
+    #[test]
+    fn watching_pushes_changed_posts_or_everything_for_a_snippet() {
+        let dir = std::env::temp_dir().join(format!("gctl-watch-test-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join(".git")).unwrap();
+        for f in ["a.md", "b.md", "_snip.md", ".git/x.md"] {
+            fs::write(dir.join(f), "").unwrap();
+        }
+        let at = |secs| SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs);
+        let times = |a, b, snip| {
+            HashMap::from([
+                (dir.join("a.md"), at(a)),
+                (dir.join("b.md"), at(b)),
+                (dir.join("_snip.md"), at(snip)),
+            ])
+        };
+        let names = |files: Vec<PathBuf>| -> Vec<String> {
+            files.iter().map(|p| display_name(&dir, p)).collect()
+        };
+        let results = [
+            (
+                "nothing",
+                changed_files(&times(1, 1, 1), &times(1, 1, 1), &dir),
+            ),
+            (
+                "one post",
+                changed_files(&times(1, 1, 1), &times(2, 1, 1), &dir),
+            ),
+            (
+                "two posts",
+                changed_files(&times(1, 1, 1), &times(2, 2, 1), &dir),
+            ),
+            (
+                "a snippet",
+                changed_files(&times(1, 1, 1), &times(1, 1, 2), &dir),
+            ),
+            (
+                "both",
+                changed_files(&times(1, 1, 1), &times(2, 1, 2), &dir),
+            ),
+        ]
+        .map(|(name, files)| (name, names(files)));
+        let seen = snapshot(&dir).len();
+        fs::remove_dir_all(&dir).unwrap();
+        insta::assert_debug_snapshot!((results, seen));
     }
 
     #[test]

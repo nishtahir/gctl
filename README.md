@@ -79,6 +79,11 @@ gctl pull content/      # write posts as markdown files
 
 See [Publishing markdown](#publishing-markdown) below.
 
+`gctl push content/ --watch` keeps running and pushes again whenever a file in the
+directory changes: just the posts that changed, or all of them when a snippet
+or other included file changed. Use it with `--dry-run` to check your edits, or
+keep it running while you write.
+
 ## Ghost Admin API Key
 
 To get your Ghost Admin API key:

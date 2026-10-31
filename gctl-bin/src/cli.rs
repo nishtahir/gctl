@@ -151,6 +151,12 @@ pub struct PushArgs {
         help = "Push files that `gctl pull` marked as lossy (`lossy:` in the front matter)"
     )]
     pub force: bool,
+    #[arg(
+        long,
+        conflicts_with = "json",
+        help = "Keep running and push again whenever a file changes"
+    )]
+    pub watch: bool,
     #[arg(long, help = "Print machine-readable JSON instead of a table")]
     pub json: bool,
 }
